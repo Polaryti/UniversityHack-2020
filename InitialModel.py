@@ -26,6 +26,14 @@ class Procesador:
     'OTHER\n': 5,
     'AGRICULTURE\n': 6}
 
+    dictio_i = {0: 'RESIDENTIAL\n',
+    1: 'INDUSTRIAL\n',
+    2: 'PUBLIC\n',
+    3: 'OFFICE\n',
+    4: 'RETAIL\n',
+    5: 'OTHER\n',
+    6: 'AGRICULTURE\n'}
+
     def __init__(self, path: str, test_percentage: float):
         with open(path, 'r') as file:
             self.variables_name = file.readline().split(self.delimiter)
@@ -39,11 +47,12 @@ class Procesador:
                 aux = aux[1:len(aux) - 3]
 
                 if n_54.isalpha() or n_54 == '""':
-                    aux.append(-1) # A Cambiar
+                    aux.append(0) # A Cambiar
                 else:
                     aux.append(n_54)
 
                 if n_54 == '""':
+                    break
                     aux.append(-1) # A Cambiar
                 else:
                     aux.append(n_53)
@@ -51,10 +60,13 @@ class Procesador:
                 aux.append(self.dictio[n_55])
                 self.raw_numeric_data.append(aux)
 
+
+        #self.input_data = np.array(self.raw_numeric_data).astype(float)
+        self.input_data = self.raw_numeric_data
+        self.__normalize_data()
         self.input_data = np.array(self.raw_numeric_data).astype(float)
         self.num_class = len(self.dictio)
         self.test_percentage = test_percentage
-        self.__normalize_data()
 
     # Devuelve una tupla de dos tensores, los datos y la clases a predecir
     def get_data(self):
@@ -68,30 +80,24 @@ class Procesador:
         return (tf.concat(t_data, 0), tf.concat(t_label, 0))
 
     def __normalize_data(self):
-        normalize_pos = []        # Array que contiene las posiciones de las variables continuas
-        for i in range(len(self.input_data[0]) - 5):
-            normalize_pos.append(i + 2)
-        normalize_max = [-1] * len(self.input_data[0]) - 5       # Array que contiene el máximo valor de cada variable continua
-        #normalize_avg = [0] * len(normalize_pos)        # *WIP* Array que contiene la media de cada varriable continua
-        res = []                                        # Array que contendra los datos normalizados
+        normalize_max = [-1000] * (len(self.input_data[0]) - 1)       # Array que contiene el máximo valor de cada variable
+        normalize_min = [99999999] * (len(self.input_data[0]) - 1)  # Array que contiene el minimo valor de cada variable
+        res = []                                                    # Array que contendra los datos normalizados
 
-        # Calculamos el máximo y (*WIP* la media) de cada variable continua
+        # Calculamos el máximo y minimo de todas las variables
         for i in range(len(self.input_data)):
-            for j in range(len(normalize_pos)):
+            for j in range(len(normalize_max)):
                 aux = self.input_data[i]
-                # *WIP* normalize_avg[j] = normalize_avg[j] + aux[normalize_pos[j]]
-                if float(aux[normalize_pos[j]]) > normalize_max[j]:
-                    normalize_max[j] = float(aux[normalize_pos[j]])
-            
-        # *WIP* Calculamos la media de cada variable a normalizar
-        # for i in range(len(normalize_pos)):
-            #normalize_avg[j] = normalize_avg[j] /  len(self.input_data)
-
-        # Normalizamos cada variable continua. A efectos practicos convertimos cada variable continua en otra con valores [0, 1]
+                if float(aux[j]) > normalize_max[j]:
+                    normalize_max[j] = float(aux[j])
+                if float(aux[j]) < normalize_min[j]:
+                    normalize_min[j] = float(aux[j]) 
+        
+        # Normalizamos cada variable en un supuesto rango de  [0, 1]
         for i in range(len(self.input_data)):
-            for j in range(len(normalize_pos)):
-                aux = self.input_data[i]
-                aux[normalize_pos[j]] = round(float(normalize_pos[j]) / normalize_max[j], 4)
+            aux = self.input_data[i]
+            for j in range(len(aux) - 1):
+                aux[j] = round((float(aux[j]) - normalize_min[j]) / (normalize_max[j] - normalize_min[j]), 12)
             res.append(aux)
                 
         self.input_data = res
@@ -103,31 +109,37 @@ procesador = Procesador(r'Data\Modelar_UH2020.txt', 0.20)
 
 # 2: Creación de la red neuronal
 model = keras.Sequential([
-    keras.layers.Dense(64, activation='relu'),
-    keras.layers.Dense(64, activation='relu'),
-    keras.layers.Dense(64, activation='relu'),
-    keras.layers.Dense(64, activation='relu'),
+    keras.layers.Dense(128, activation='sigmoid'),
+    keras.layers.Dense(128, activation='sigmoid'),
+    keras.layers.Dense(128, activation='sigmoid'),
+    keras.layers.Dense(128, activation='sigmoid'),
     keras.layers.Dense(procesador.num_class, activation='softmax')
 ])
 
 # 3: Función de optimización y metrica a optimizar
 model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
+              loss='binary_crossentropy',
               metrics=['accuracy'])
 
 # 4: Entrenamiento del modelo
 model.fit(
     x=samples_data,
     y=samples_labels,
-    epochs=20,
+    epochs=1,
     validation_split=procesador.test_percentage
 )
 
-# *WIP* 5: Hacer predicciones, evaluar el modelo y visualización de los resultados
-# Devuelve la última capa, en este caso un vector con la posibilidad de pertenecer a cada clase
+# 5: Saca la estadistica de acierto de cada clase
 predictions = model.predict(samples_data)
+cont_total = [0] * len(procesador.dictio)
+cont_acierto = [0] * len(procesador.dictio)
 cont = 0
-for pr in predictions[:20]:
-    print(("Muestra {} ha predicho {} y lo correcto es {}").format(
-        cont, np.argmax(pr), int(samples_labels[cont])))
+for pr in predictions:
+    cont_total[int(samples_labels[cont])] += 1
+    if np.argmax(pr) == int(samples_labels[cont]):
+        cont_acierto[int(samples_labels[cont])] += 1
+    cont += 1
+cont = 0
+for cl in cont_total:
+    print(("Tasa de acierto de {} es {}. Hay {} muestras.").format(procesador.dictio_i[cont], 100 * round(cont_acierto[cont] / cl, 2), cl))
     cont += 1
