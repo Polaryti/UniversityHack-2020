@@ -1,7 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
-import pandas as pd
 import random
 
 
@@ -118,9 +117,9 @@ class Parser:
 
     
     def get_data(self):
-        # t_data_pos = tf.constant(                                   # Tensor de rango 2 (matriz) que contiene los datos de posición
-        #     value=self.eq_input[:, 0:2]
-        # )
+        t_data_pos = tf.constant(                                   # Tensor de rango 2 (matriz) que contiene los datos de posición
+             value=self.eq_input[:, 0:2]
+        )
 
         # t_data_geo = tf.constant(                                   # Tensor de rango 2 (matriz) que contiene los datos de geometria
         #     value=self.eq_input[:, 47:55]
@@ -148,13 +147,20 @@ class Parser:
         )
         
         # Devolvemos una dupla de tensores donde cada tensor ha sido transformado en uno concatenando sus elementos en el eje 0
-        return (tf.concat(t_data_red, 0), tf.concat(t_data_gre, 0), tf.concat(t_data_blu, 0), tf.concat(t_data_inf, 0), tf.concat(t_label, 0))
+        return (t_data_pos, tf.concat(t_data_red, 0), tf.concat(t_data_gre, 0), tf.concat(t_data_blu, 0), tf.concat(t_data_inf, 0), tf.concat(t_label, 0))
 
 # 1: Obtención y procesamiento de datos
 procesador = Parser(r'Data\Modelar_UH2020.txt', 0.14)
-(red_data, gre_data, blu_data, inf_data, samples_labels) = procesador.get_data()
+(sample_data, red_data, gre_data, blu_data, inf_data, samples_labels) = procesador.get_data()
 
 # 2: Creación de la red neuronal
+model = keras.Sequential([
+    keras.layers.Dense(128, activation='sigmoid'),
+    keras.layers.Dense(128, activation='sigmoid'),
+    keras.layers.Dense(128, activation='sigmoid'),
+    keras.layers.Dense(128, activation='sigmoid'),
+    keras.layers.Dense(procesador.num_class, activation='softmax')
+])
 # No converge > 30%
 model_img_red = keras.Sequential([
     keras.layers.Dense(128, activation='relu'),
@@ -192,6 +198,10 @@ model_img_inf = keras.Sequential([
 ])
 
 # 3: Función de optimización, función de perdidas y metrica a optimizar
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
 model_img_red.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
@@ -209,45 +219,53 @@ model_img_inf.compile(optimizer='adam',
               metrics=['accuracy'])
 
 # 4: Entrenamiento del modelo
-model_img_red.fit(
-    x=red_data,
+model.fit(
+    x=sample_data,
     y=samples_labels,
-    epochs=500,
+    epochs=100,
     validation_split=procesador.test_percentage,
     shuffle= True
 )
 
-model_img_gre.fit(
-    x=gre_data,
-    y=samples_labels,
-    epochs=200,
-    validation_split=procesador.test_percentage,
-    shuffle= True
-)
+# model_img_red.fit(
+#     x=red_data,
+#     y=samples_labels,
+#     epochs=500,
+#     validation_split=procesador.test_percentage,
+#     shuffle= True
+# )
 
-model_img_blu.fit(
-    x=blu_data,
-    y=samples_labels,
-    epochs=200,
-    validation_split=procesador.test_percentage,
-    shuffle= True
-)
+# model_img_gre.fit(
+#     x=gre_data,
+#     y=samples_labels,
+#     epochs=200,
+#     validation_split=procesador.test_percentage,
+#     shuffle= True
+# )
 
-model_img_inf.fit(
-    x=inf_data,
-    y=samples_labels,
-    epochs=500,
-    validation_split=procesador.test_percentage,
-    shuffle= True
-)
+# model_img_blu.fit(
+#     x=blu_data,
+#     y=samples_labels,
+#     epochs=200,
+#     validation_split=procesador.test_percentage,
+#     shuffle= True
+# )
+
+# model_img_inf.fit(
+#     x=inf_data,
+#     y=samples_labels,
+#     epochs=500,
+#     validation_split=procesador.test_percentage,
+#     shuffle= True
+# )
 
 # 5: Validar predicciones
-predictions_red = model_img_red.predict(red_data)
-predictions_gre = model_img_gre.predict(gre_data)
-predictions_blu = model_img_blu.predict(blu_data)
-predictions_inf = model_img_inf.predict(inf_data)
+# predictions_red = model_img_red.predict(red_data)
+# predictions_gre = model_img_gre.predict(gre_data)
+# predictions_blu = model_img_blu.predict(blu_data)
+# predictions_inf = model_img_inf.predict(inf_data)
 
-cont = 0
-for i in range(20):
-    print(("C:{} ->:{}\n").format(samples_labels[cont], np.argmax(predictions_red[i] + predictions_gre[i] + predictions_blu[i] + predictions_inf[i])))
-    cont += 1
+# cont = 0
+# for i in range(20):
+#     print(("C:{} ->:{}\n").format(samples_labels[cont], np.argmax(predictions_red[i] + predictions_gre[i] + predictions_blu[i] + predictions_inf[i])))
+#     cont += 1

@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
-
+import tempfile
 
 class Procesador:
     # Matriz que contendra los datos obtenidos del fichero de entrada
@@ -15,6 +15,9 @@ class Procesador:
     delimiter = '|'
     # Decimal que representa el porcentaje de muestras para evaluar el modelo [0.1 - 0.9]
     test_percentage = 0.1
+
+    batch_size = 128
+    epochs = 20
 
     variables_name = []                 # Lista que contiene los nombres de las variables
     dictio = {'RESIDENTIAL\n': 0,
@@ -46,13 +49,13 @@ class Procesador:
                 aux = aux[1:len(aux) - 3]
 
                 if n_54.isalpha() or n_54 == '""':
-                    aux.append(127) # A Cambiar
+                    aux.append(0) # A Cambiar
                 else:
                     aux.append(n_54)
 
                 if n_54 == '""':
                     break
-                    aux.append(256) # A Cambiar
+                    aux.append(-1) # A Cambiar
                 else:
                     aux.append(n_53)
 
@@ -69,14 +72,19 @@ class Procesador:
 
     # Devuelve una tupla de dos tensores, los datos y la clases a predecir
     def get_data(self):
+        porcentaje = int(len(self.input_data) * 0.2)
         t_data = tf.constant(                                       # Tensor de rango 2 (matriz) que contiene los datos
-            value=self.input_data[:, :len(self.input_data[0]) - 2]
+            value=self.input_data[0:porcentaje, :len(self.input_data[0]) - 2]
         )
-        t_label = tf.constant(                                      # Tensor de rango 1 (vector) que contiene las predicciones
-            value=self.input_data[:, len(self.input_data[0]) - 1]
+        t_labels = keras.utils.to_categorical(self.input_data[0:porcentaje, len(self.input_data[0]) - 1], procesador.num_class)
+        test_data = tf.constant(                                       # Tensor de rango 2 (matriz) que contiene los datos
+            value=self.input_data[porcentaje:len(self.input_data), :len(self.input_data[0]) - 2]
         )
+        test_labels = keras.utils.to_categorical(self.input_data[porcentaje:len(self.input_data), len(self.input_data[0]) - 1], procesador.num_class)
+
+
         # Devolvemos una dupla de tensores donde cada tensor ha sido transformado en uno concatenando sus elementos en el eje 0
-        return (t_data, t_label)
+        return (t_data, t_labels, test_data, test_labels)
 
     def __normalize_data(self):
         normalize_max = [-1000] * (len(self.input_data[0]) - 1)       # Array que contiene el máximo valor de cada variable
@@ -103,46 +111,57 @@ class Procesador:
 
 
 # 1: Obtención y procesamiento de datos
+logdir = tempfile.mkdtemp()
 procesador = Procesador(r'Data\Modelar_UH2020.txt', 0.20)
-(samples_data, samples_labels) = procesador.get_data()
+(samples_data, samples_labels, test_data, test_labels) = procesador.get_data()
 
 # 2: Creación de la red neuronal
-model = keras.Sequential([
-    keras.layers.Dense(128, activation='sigmoid'),
-    keras.layers.Dense(128, activation='sigmoid'),
-    keras.layers.Dense(128, activation='sigmoid'),
-    keras.layers.Dense(128, activation='sigmoid'),
-    keras.layers.Dense(procesador.num_class, activation='softmax')
+end_step = np.ceil(1.0 * samples_data.shape[0] / procesador.batch_size).astype(np.int32) * procesador.epochs
+pruning_params = {
+      'pruning_schedule': keras.PolynomialDecay(initial_sparsity=0.50,
+                                                   final_sparsity=0.90,
+                                                   begin_step=2000,
+                                                   end_step=end_step,
+                                                   frequency=100)
+}
+
+pruned_model = keras.Sequential([
+    keras.prune_low_magnitude(
+        keras.layers.Conv2D(32, 5, padding='same', activation='relu'),
+        **pruning_params),
+    keras.layers.MaxPooling2D((2, 2), (2, 2), padding='same'),
+    keras.layers.BatchNormalization(),
+    keras.prune_low_magnitude(
+        keras.layers.Conv2D(64, 5, padding='same', activation='relu'), **pruning_params),
+    keras.layers.MaxPooling2D((2, 2), (2, 2), padding='same'),
+    keras.layers.Flatten(),
+    keras.prune_low_magnitude(keras.layers.Dense(1024, activation='relu'),
+                                 **pruning_params),
+    keras.layers.Dropout(0.4),
+    keras.prune_low_magnitude(keras.layers.Dense(procesador.num_class, activation='softmax'),
+                                 **pruning_params)
 ])
 
 # 3: Función de optimización y metrica a optimizar
-model.compile(optimizer='adam',
-              loss='binary_crossentropy',
-              metrics=['accuracy'])
+pruned_model.compile(
+    loss=keras.losses.categorical_crossentropy,
+    optimizer='adam',
+    metrics=['accuracy'])
+
+callbacks = [
+    keras.UpdatePruningStep(),
+    keras.PruningSummaries(log_dir=logdir, profile_batch=0)
+]
 
 # 4: Entrenamiento del modelo
-model.fit(
-    x=samples_data,
-    y=samples_labels,
-    epochs=5,
-    validation_split=procesador.test_percentage
-)
+pruned_model.fit(samples_data, samples_labels,
+          batch_size = procesador.batch_size,
+          epochs = procesador.epochs,
+          verbose = 1,
+          callbacks = callbacks,
+          validation_data = (test_data, test_labels))
 
 # 5: Saca la estadistica de acierto de cada clase
-predictions = model.predict(samples_data)
-
-for i in range(20):
-    print(("{} -> {}").format(predictions[i], int(samples_labels[i])))
-
-# cont_total = [0] * len(procesador.dictio)
-# cont_acierto = [0] * len(procesador.dictio)
-# cont = 0
-# for pr in predictions:
-#     cont_total[int(samples_labels[cont])] += 1
-#     if np.argmax(pr) == int(samples_labels[cont]):
-#         cont_acierto[int(samples_labels[cont])] += 1
-#     cont += 1
-# cont = 0
-# for cl in cont_total:
-#     print(("Tasa de acierto de {} es {}. Hay {} muestras.").format(procesador.dictio_i[cont], 100 * round(cont_acierto[cont] / cl, 2), cl))
-#     cont += 1
+score = pruned_model.evaluate(test_data, test_labels, verbose=0)
+print('Test loss:', score[0])
+print('Test accuracy:', score[1])
