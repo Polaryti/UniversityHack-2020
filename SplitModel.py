@@ -154,11 +154,24 @@ procesador = Parser(r'Data\Modelar_UH2020.txt', 0.14)
 (sample_data, red_data, gre_data, blu_data, inf_data, samples_labels) = procesador.get_data()
 
 # 2: Creación de la red neuronal
-model = keras.Sequential([
-    keras.layers.Dense(128, activation='sigmoid'),
-    keras.layers.Dense(128, activation='sigmoid'),
-    keras.layers.Dense(128, activation='sigmoid'),
-    keras.layers.Dense(128, activation='sigmoid'),
+# model = keras.Sequential([
+#     keras.layers.Dense(128, activation='sigmoid'),
+#     keras.layers.Dense(128, activation='sigmoid'),
+#     keras.layers.Dense(128, activation='sigmoid'),
+#     keras.layers.Dense(128, activation='sigmoid'),
+#     keras.layers.Dense(procesador.num_class, activation='softmax')
+# ])
+
+model = tf.keras.Sequential([
+    keras.layers.Conv2D(
+        32, 5, padding='same', activation='relu'),
+    keras.layers.MaxPooling2D((2, 2), (2, 2), padding='same'),
+    keras.layers.BatchNormalization(),
+    keras.layers.Conv2D(64, 5, padding='same', activation='relu'),
+    keras.layers.MaxPooling2D((2, 2), (2, 2), padding='same'),
+    keras.layers.Flatten(),
+    keras.layers.Dense(1024, activation='relu'),
+    keras.layers.Dropout(0.4),
     keras.layers.Dense(procesador.num_class, activation='softmax')
 ])
 # No converge > 30%
