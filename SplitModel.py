@@ -68,7 +68,7 @@ class Parser:
 
             # Lista de datos equilibrados
             for i in range(338):
-                for j in range(7):
+                for j in range(6):
                     self.eq_input.append(self.variables_per_class[j][i])
                     self.eq_labels.append(self.labels_per_class[j][i])
             random.shuffle(self.eq_input, random.seed(10))
@@ -163,15 +163,10 @@ procesador = Parser(r'Data\Modelar_UH2020.txt', 0.14)
 # ])
 
 model = tf.keras.Sequential([
-    keras.layers.Conv2D(
-        32, 5, padding='same', activation='relu'),
-    keras.layers.MaxPooling2D((2, 2), (2, 2), padding='same'),
-    keras.layers.BatchNormalization(),
-    keras.layers.Conv2D(64, 5, padding='same', activation='relu'),
-    keras.layers.MaxPooling2D((2, 2), (2, 2), padding='same'),
-    keras.layers.Flatten(),
-    keras.layers.Dense(1024, activation='relu'),
-    keras.layers.Dropout(0.4),
+    keras.layers.Dense(128, activation='relu'),
+    keras.layers.Dense(128, activation='relu'),
+    keras.layers.Dense(128, activation='relu'),
+    keras.layers.Dense(128, activation='relu'),
     keras.layers.Dense(procesador.num_class, activation='softmax')
 ])
 # No converge > 30%
@@ -223,7 +218,7 @@ model_img_gre.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
-model_img_blu.compile(optimizer='rmsprop',
+model_img_blu.compile(optimizer='adam',
               loss='sparse_categorical_crossentropy',
               metrics=['accuracy'])
 
