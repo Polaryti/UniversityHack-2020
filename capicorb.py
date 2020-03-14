@@ -39,35 +39,54 @@ for i in range(7):
     for j in range(int(len(variables_per_class[i]) * test_avg)):
         eq_test.append(variables_per_class[i][min_sample + j])
 
+for i in range(5):
+    eq_data = np.array(eq_data)
+    np.random.shuffle(eq_data)
+    eq_test = np.array(eq_test)
+    np.random.shuffle(eq_test)
 
-eq_data = np.array(eq_data)
-np.random.shuffle(eq_data)
-eq_test = np.array(eq_test)
-np.random.shuffle(eq_test)
-
-X_train = eq_data[:, 1:55]
-y_train = eq_data[:, 55]
-X_test = eq_test[:, 1:55]
-y_test = eq_test[:, 55]
-##
-
-
-##
-bst = xgb.XGBClassifier()
-bst.fit(X_train, y_train)
-##
+    X_train = eq_data[:, 1:55]
+    y_train = eq_data[:, 55]
+    X_test = eq_test[:, 1:55]
+    y_test = eq_test[:, 55]
+    ##
 
 
-##
-y_pred = bst.predict(X_test)
-print(classification_report(y_test, y_pred))
-##
+    ##
+    bst = xgb.XGBClassifier()
+    bst.fit(X_train, y_train)
+    ##
 
 
-##
-final_predictions = bst.predict(predict[:, 1:])
-with open('res-capicorb.txt', 'w') as file:
+    ##
+    y_pred = bst.predict(X_test)
+    print(classification_report(y_test, y_pred))
+    ##
+
+
+    ##
+    final_predictions = bst.predict(predict[:, 1:])
+    with open(r'Output\capicorb_0{}.txt'.format(i), 'w') as file:
+        with open(r'Data\Estimar_UH2020.csv', 'r') as read:
+            for i in range(len(final_predictions)):
+                file.write('{}|{}'.format(read.readline().split('|')[0], dictio_i[final_predictions[i]]))
+    ## 
+
+## Evaluación global
+last_prediction = {}
+for i in range(5):
+    with open(r'Output\capicorb_0{}.txt'.format(i), 'r') as file:
+        for line in file.readlines():
+            line = line.split('|')
+            if (last_prediction[line[0]] is None):
+                last_prediction[line[0]] = [line[1]]
+            else:
+                last_prediction[line[0]] = last_prediction[line[0]].append(line[1])
+
+with open(r'Output\capicorb_F.txt', 'w') as file:
+    file.write('ID|CLASE')
     with open(r'Data\Estimar_UH2020.csv', 'r') as read:
-        for i in range(len(final_predictions)):
-            file.write('{}|{}'.format(read.readline().split('|')[0], dictio_i[final_predictions[i]]))
+        for line in read.readlines():
+            line = line.split()
+            file.write('{}|{}'.format(line[0], max(set(last_prediction[line[0]]), key = last_prediction[line[0]].count)))
 ## 
