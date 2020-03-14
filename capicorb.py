@@ -1,7 +1,12 @@
+# Datos equilibrados al por mayor
+# Requilibrado sin mezcla de muestras de entrenamiento en muestras de test 
+
 import xgboost as xgb
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+
+test_avg = 0.2
 
 dictio_i = {0: 'RESIDENTIAL\n',
     1: 'INDUSTRIAL\n',
@@ -15,6 +20,7 @@ dictio_i = {0: 'RESIDENTIAL\n',
 data = np.genfromtxt(r'Data\Modelar_UH2020.csv', delimiter = ',')
 predict = np.genfromtxt(r'Data\Estimar_UH2020.csv', delimiter='|')
 
+np.random.shuffle(data)
 variables_per_class = []
 for i in range(7):         
     variables_per_class.append([])
@@ -24,10 +30,25 @@ for label in data:
 eq_data = []
 for i in range(90173):
     for j in range(7):
-        eq_data.append(variables_per_class[j][i % (len(variables_per_class[j]))])
-eq_data = np.array(eq_data)
+        max_sample = len(variables_per_class[j]) - int(len(variables_per_class[j]) * test_avg)
+        eq_data.append(variables_per_class[j][i % max_sample])
 
-X_train, X_test, y_train, y_test = train_test_split(eq_data[:, 1:55], eq_data[:, 55], test_size = 0.20)
+eq_test = []
+for i in range(7):
+    min_sample = len(variables_per_class[i]) - int(len(variables_per_class[i]) * test_avg)
+    for j in range(int(len(variables_per_class[i]) * test_avg)):
+        eq_test.append(variables_per_class[i][min_sample + j])
+
+
+eq_data = np.array(eq_data)
+np.random.shuffle(eq_data)
+eq_test = np.array(eq_test)
+np.random.shuffle(eq_test)
+
+X_train = eq_data[:, 1:55]
+y_train = eq_data[:, 55]
+X_test = eq_test[:, 1:55]
+y_test = eq_test[:, 55]
 ##
 
 
