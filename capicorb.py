@@ -21,7 +21,7 @@ dictio_i = {0: 'RESIDENTIAL\n',
 data = np.genfromtxt(r'Data\Modelar_UH2020.csv', delimiter = ',')
 predict = np.genfromtxt(r'Data\Estimar_UH2020.csv', delimiter='|')
 
-for i in range(5):
+for z in range(5):
     np.random.shuffle(data)
     variables_per_class = []
     for i in range(7):         
@@ -68,17 +68,17 @@ for i in range(5):
 
     ##
     final_predictions = bst.predict(predict[:, 1:])
-    with open(r'Output\capicorb_0{}.txt'.format(i), 'w') as file:
+    with open(r'Output\capicorb_0{}.txt'.format(z), 'w') as file:
         with open(r'Data\Estimar_UH2020.csv', 'r') as read:
             for i in range(len(final_predictions)):
                 file.write('{}|{}'.format(read.readline().split('|')[0], dictio_i[final_predictions[i]]))
     ## 
     ##
-    for info in data:
-        if (info[0] not in avg_prediction):
-            avg_prediction[info[0]] = bst.predict(info[1:55])
-        else:
-            avg_prediction[info[0]] += bst.predict(info[1:55])
+    # for info in data:
+    #     if (info[0] not in avg_prediction):
+    #         avg_prediction[info[0]] = bst.predict(info[1:55])
+    #     else:
+    #         avg_prediction[info[0]] += bst.predict(info[1:55])
     ##
 
 ## Evaluación global
