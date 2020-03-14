@@ -3,8 +3,7 @@
 
 import xgboost as xgb
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import confusion_matrix, classification_report
 
 test_avg = 0.2
 
@@ -60,6 +59,7 @@ for i in range(5):
 
     ##
     y_pred = bst.predict(X_test)
+    print(confusion_matrix(y_test, y_pred))
     print(classification_report(y_test, y_pred))
     ##
 
