@@ -7,6 +7,8 @@ from sklearn.metrics import confusion_matrix, classification_report
 
 test_avg = 0.2
 
+avg_prediction = {}
+
 dictio_i = {0: 'RESIDENTIAL\n',
     1: 'INDUSTRIAL\n',
     2: 'PUBLIC\n',
@@ -19,26 +21,26 @@ dictio_i = {0: 'RESIDENTIAL\n',
 data = np.genfromtxt(r'Data\Modelar_UH2020.csv', delimiter = ',')
 predict = np.genfromtxt(r'Data\Estimar_UH2020.csv', delimiter='|')
 
-np.random.shuffle(data)
-variables_per_class = []
-for i in range(7):         
-    variables_per_class.append([])
-for label in data:
-    variables_per_class[int(label[55])].append(label)
-
-eq_data = []
-for i in range(90173):
-    for j in range(7):
-        max_sample = len(variables_per_class[j]) - int(len(variables_per_class[j]) * test_avg)
-        eq_data.append(variables_per_class[j][i % max_sample])
-
-eq_test = []
-for i in range(7):
-    min_sample = len(variables_per_class[i]) - int(len(variables_per_class[i]) * test_avg)
-    for j in range(int(len(variables_per_class[i]) * test_avg)):
-        eq_test.append(variables_per_class[i][min_sample + j])
-
 for i in range(5):
+    np.random.shuffle(data)
+    variables_per_class = []
+    for i in range(7):         
+        variables_per_class.append([])
+    for label in data:
+        variables_per_class[int(label[55])].append(label)
+
+    eq_data = []
+    for i in range(90173):
+        for j in range(7):
+            max_sample = len(variables_per_class[j]) - int(len(variables_per_class[j]) * test_avg)
+            eq_data.append(variables_per_class[j][i % max_sample])
+
+    eq_test = []
+    for i in range(7):
+        min_sample = len(variables_per_class[i]) - int(len(variables_per_class[i]) * test_avg)
+        for j in range(int(len(variables_per_class[i]) * test_avg)):
+            eq_test.append(variables_per_class[i][min_sample + j])
+
     eq_data = np.array(eq_data)
     np.random.shuffle(eq_data)
     eq_test = np.array(eq_test)
@@ -71,6 +73,13 @@ for i in range(5):
             for i in range(len(final_predictions)):
                 file.write('{}|{}'.format(read.readline().split('|')[0], dictio_i[final_predictions[i]]))
     ## 
+    ##
+    for info in data:
+        if (info[0] not in avg_prediction):
+            avg_prediction[info[0]] = bst.predict(info[1:55])
+        else:
+            avg_prediction[info[0]] += bst.predict(info[1:55])
+    ##
 
 ## Evaluación global
 last_prediction = {}
@@ -78,7 +87,7 @@ for i in range(5):
     with open(r'Output\capicorb_0{}.txt'.format(i), 'r') as file:
         for line in file.readlines():
             line = line.split('|')
-            if (last_prediction[line[0]] is None):
+            if (line[0] not in last_prediction):
                 last_prediction[line[0]] = [line[1]]
             else:
                 last_prediction[line[0]] = last_prediction[line[0]].append(line[1])
@@ -89,4 +98,9 @@ with open(r'Output\capicorb_F.txt', 'w') as file:
         for line in read.readlines():
             line = line.split()
             file.write('{}|{}'.format(line[0], max(set(last_prediction[line[0]]), key = last_prediction[line[0]].count)))
+
+with open(r'Data\Estimar_UH2020.csv', 'r') as read:
+    with open(r'Output\capicorb_AVG.txt', 'w') as file:
+        for line in read.readlines():
+            file.write('{}|{}'.format(line[0], max(set(avg_prediction[line[0]]), key = avg_prediction[line[0]].count)))
 ## 

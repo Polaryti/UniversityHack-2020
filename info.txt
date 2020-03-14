@@ -1,3 +1,0 @@
-Preprocesamiento:
-- Normalización
-- PCA (balanza de los datos)    
