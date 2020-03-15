@@ -2,9 +2,11 @@
 # Requilibrado sin mezcla de muestras de entrenamiento en muestras de test 
 
 import xgboost as xgb
+import tensorflow as tf
+from tensorflow import keras
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.ensemble import RandomForestClassifier
 
 test_avg = 0.2
@@ -26,7 +28,7 @@ def most_frequent(List):
 data = np.genfromtxt(r'Data\Modelar_UH2020.csv', delimiter = ',')
 predict = np.genfromtxt(r'Data\Estimar_UH2020.csv', delimiter='|')
 
-for iteration in range(20):
+for iteration in range(50):
     np.random.shuffle(data)
     variables_per_class = []
     for i in range(7):         
@@ -71,8 +73,9 @@ for iteration in range(20):
     bst = xgb.XGBClassifier()
     bst.fit(X_train_menor, y_train_menor)
     y_pred = bst.predict(X_test_menor)
-    print(confusion_matrix(y_test_menor, y_pred))
-    print(classification_report(y_test_menor, y_pred))
+    # print(confusion_matrix(y_test_menor, y_pred))
+    # print(classification_report(y_test_menor, y_pred))
+    print('{}_XGB_m - {}'.format(iteration, accuracy_score(y_test_menor, y_pred)))
     final_predictions = bst.predict(predict[:, 1:])
     with open(r'Output\torrent\torrent_0{}_XGB_m.txt'.format(iteration), 'w') as file:
         with open(r'Data\Estimar_UH2020.csv', 'r') as read:
@@ -85,11 +88,12 @@ for iteration in range(20):
                     avg_prediction[line[0]].append(int(final_predictions[i]))
     ##
     ##
-    bst = RandomForestClassifier()
+    bst = RandomForestClassifier(n_estimators = 400, min_samples_split = 5, min_samples_leaf = 1, max_features = 'auto', max_depth = 60, bootstrap = True)
     bst.fit(X_train_menor, y_train_menor)
     y_pred = bst.predict(X_test_menor)
-    print(confusion_matrix(y_test_menor, y_pred))
-    print(classification_report(y_test_menor, y_pred))
+    # print(confusion_matrix(y_test_menor, y_pred))
+    # print(classification_report(y_test_menor, y_pred))
+    print('{}_rndf_m - {}'.format(iteration, accuracy_score(y_test_menor, y_pred)))
     final_predictions = bst.predict(predict[:, 1:])
     with open(r'Output\torrent\torrent_0{}_rndf_m.txt'.format(iteration), 'w') as file:
         with open(r'Data\Estimar_UH2020.csv', 'r') as read:
@@ -101,11 +105,12 @@ for iteration in range(20):
                 else:
                     avg_prediction[line[0]].append(int(final_predictions[i]))
     ##
+    
 
 ## Evaluación global
 with open(r'Output\torrent\torrent_DEBUG.txt', 'w') as debug:
     for item in avg_prediction.items():
-        debug.write(str(item))
+        debug.write('{}\n'.format(str(item)))
 with open(r'Data\Estimar_UH2020.csv', 'r') as read:
     with open(r'Output\torrent\torrent_FINAL.txt', 'w') as file:
         for line in read.readlines():
