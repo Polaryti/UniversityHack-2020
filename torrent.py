@@ -2,8 +2,6 @@
 # Requilibrado sin mezcla de muestras de entrenamiento en muestras de test 
 
 import xgboost as xgb
-import tensorflow as tf
-from tensorflow import keras
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
@@ -118,8 +116,8 @@ for iteration in range(4):
     bst = xgb.XGBClassifier()
     bst.fit(X_train_major, y_train_major)
     y_pred = bst.predict(X_test_major)
-    # print(confusion_matrix(y_test_menor, y_pred))
-    # print(classification_report(y_test_menor, y_pred))
+    # print(confusion_matrix(y_test_major, y_pred))
+    print(classification_report(y_test_major, y_pred))
     print('{}_XGB_M - {}'.format(iteration, accuracy_score(y_test_major, y_pred)))
     final_predictions = bst.predict(predict[:, 1:])
     with open(r'Output\torrent\torrent_0{}_XGB_M.txt'.format(iteration), 'w') as file:
@@ -132,23 +130,24 @@ for iteration in range(4):
                 else:
                     avg_prediction[line[0]].append(int(final_predictions[i]))
     ##
-    ##
-    bst = RandomForestClassifier(n_estimators = 400, min_samples_split = 5, min_samples_leaf = 1, max_features = 'auto', max_depth = 60, bootstrap = True)
-    bst.fit(X_train_major, y_train_major)
-    y_pred = bst.predict(X_test_major)
-    # print(confusion_matrix(y_test_menor, y_pred))
-    # print(classification_report(y_test_menor, y_pred))
-    print('{}_rndf_M - {}'.format(iteration, accuracy_score(y_test_major, y_pred)))
-    final_predictions = bst.predict(predict[:, 1:])
-    with open(r'Output\torrent\torrent_0{}_rndf_M.txt'.format(iteration), 'w') as file:
-        with open(r'Data\Estimar_UH2020.csv', 'r') as read:
-            for i in range(len(final_predictions)):
-                line = read.readline().split('|')
-                file.write('{}|{}'.format(line[0], dictio_i[final_predictions[i]]))
-                if (line[0] not in avg_prediction):
-                    avg_prediction[line[0]] = [int(final_predictions[i])]
-                else:
-                    avg_prediction[line[0]].append(int(final_predictions[i]))
+    # ##
+    # bst = RandomForestClassifier(n_estimators = 400, min_samples_split = 5, min_samples_leaf = 1, max_features = 'auto', max_depth = 60, bootstrap = True)
+    # bst.fit(X_train_major, y_train_major)
+    # y_pred = bst.predict(X_test_major)
+    # # print(confusion_matrix(y_test_major, y_pred))
+    # # print(classification_report(y_test_major, y_pred))
+    # print('{}_rndf_M - {}'.format(iteration, accuracy_score(y_test_major, y_pred)))
+    # final_predictions = bst.predict(predict[:, 1:])
+    # with open(r'Output\torrent\torrent_0{}_rndf_M.txt'.format(iteration), 'w') as file:
+    #     with open(r'Data\Estimar_UH2020.csv', 'r') as read:
+    #         for i in range(len(final_predictions)):
+    #             line = read.readline().split('|')
+    #             file.write('{}|{}'.format(line[0], dictio_i[final_predictions[i]]))
+    #             if (line[0] not in avg_prediction):
+    #                 avg_prediction[line[0]] = [int(final_predictions[i])]
+    #             else:
+    #                 avg_prediction[line[0]].append(int(final_predictions[i]))
+    # ##
     
 
 ## Evaluación global
