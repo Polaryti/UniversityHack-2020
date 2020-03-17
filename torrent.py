@@ -44,7 +44,7 @@ for iteration in range(10):
     #         else:
     #             eq_data_menor.append(variables_per_class[j][i])
     # eq_data_menor = np.array(eq_data_menor)
-    for i in range(4490):
+    for i in range(5200):
         eq_data_menor.append(variables_per_class[0][i])
     eq_data_menor += variables_per_class[1]
     eq_data_menor += variables_per_class[2]
