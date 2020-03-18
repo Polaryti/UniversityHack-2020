@@ -1,6 +1,3 @@
-# Datos equilibrados al por mayor
-# Requilibrado sin mezcla de muestras de entrenamiento en muestras de test 
-
 import xgboost as xgb
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -44,7 +41,7 @@ for iteration in range(10):
     #         else:
     #             eq_data_menor.append(variables_per_class[j][i])
     # eq_data_menor = np.array(eq_data_menor)
-    for i in range(4490):
+    for i in range(4100):
         eq_data_menor.append(variables_per_class[0][i])
     eq_data_menor += variables_per_class[1]
     eq_data_menor += variables_per_class[2]
@@ -82,7 +79,8 @@ for iteration in range(10):
     #         train_prediction[data[ite][0]].append(final_predictions[ite])
     ##
     ##
-    bst = RandomForestClassifier(n_estimators = 400, min_samples_split = 5, min_samples_leaf = 1, max_features = 'auto', max_depth = 60, bootstrap = True)
+    #bst = RandomForestClassifier(n_estimators = 400, min_samples_split = 5, min_samples_leaf = 1, max_features = 'auto', max_depth = 60, bootstrap = True)
+    bst = RandomForestClassifier()
     bst.fit(X_train_menor, y_train_menor)
     y_pred = bst.predict(X_test_menor)
     # print(confusion_matrix(y_test_menor, y_pred))
