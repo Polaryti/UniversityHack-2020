@@ -17,12 +17,41 @@ dictio_i = {0: 'RESIDENTIAL\n',
     5: 'RETAIL\n',
     6: 'AGRICULTURE\n'}
 
+categorical_encoder_class = {'RESIDENTIAL\n': 0,
+    'INDUSTRIAL\n': 1,
+    'PUBLIC\n': 2,
+    'OFFICE\n': 3,
+    'OTHER\n': 4,
+    'RETAIL\n': 5,
+    'AGRICULTURE\n': 6
+}
+
+categorical_encoder_catastral = {'A': -10,
+    'B': -20,
+    'C': -30,
+    '""': 50
+}
+
 def most_frequent(List): 
     return max(set(List), key = List.count) 
 
 ##
-data = np.genfromtxt(r'Data\Modelar_UH2020.csv', delimiter = ',')
+#data = np.genfromtxt(r'Data\Modelar_UH2020.csv', delimiter = ',')
 predict = np.genfromtxt(r'Data\Estimar_UH2020.csv', delimiter='|')
+
+data = []
+with open(r'Data\Modelar_UH2020.txt') as read_file:
+    read_file.readline() # La primera linea del documento es el nombre de las variables, no nos interesa
+    for line in read_file.readlines():
+        line = line.split('|')
+        if line[54] in categorical_encoder_catastral:
+            line[54] = categorical_encoder_catastral[line[54]]
+            if line[54] is 50:
+                line[53] = -1
+        line[55] = categorical_encoder_class[line[55]]
+        data.append(line[1:])
+
+    data = np.array(data).astype('float32')
 
 for iteration in range(10):
     np.random.shuffle(data)
@@ -30,7 +59,7 @@ for iteration in range(10):
     for i in range(7):         
         variables_per_class.append([])
     for label in data:
-        variables_per_class[int(label[55])].append(label)
+        variables_per_class[int(label[54])].append(label)
 
     ## Data normalizada al por menor
     eq_data_menor = []
@@ -41,7 +70,7 @@ for iteration in range(10):
     #         else:
     #             eq_data_menor.append(variables_per_class[j][i])
     # eq_data_menor = np.array(eq_data_menor)
-    for i in range(4100):
+    for i in range(10000):
         eq_data_menor.append(variables_per_class[0][i])
     eq_data_menor += variables_per_class[1]
     eq_data_menor += variables_per_class[2]
@@ -50,7 +79,7 @@ for iteration in range(10):
     eq_data_menor += variables_per_class[5]
     eq_data_menor += variables_per_class[6]
     eq_data_menor = np.array(eq_data_menor)
-    X_train_menor, X_test_menor, y_train_menor, y_test_menor = train_test_split(eq_data_menor[:, 1:55], eq_data_menor[:, 55], test_size = test_avg)
+    X_train_menor, X_test_menor, y_train_menor, y_test_menor = train_test_split(eq_data_menor[:, :54], eq_data_menor[:, 54], test_size = test_avg)
     ##
 
 
