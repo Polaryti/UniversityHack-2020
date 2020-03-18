@@ -3,6 +3,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import Normalizer
 
 test_avg = 0.2
 
@@ -26,14 +27,14 @@ predict = np.genfromtxt(r'Data\Estimar_UH2020.csv', delimiter='|')
 
 for iteration in range(10):
     np.random.shuffle(data)
-    variables_per_class = []
-    for i in range(7):         
-        variables_per_class.append([])
-    for label in data:
-        variables_per_class[int(label[55])].append(label)
+    # variables_per_class = []
+    # for i in range(7):         
+    #     variables_per_class.append([])
+    # for label in data:
+    #     variables_per_class[int(label[55])].append(label)
 
     ## Data normalizada al por menor
-    eq_data_menor = []
+    # eq_data_menor = []
     # for i in range(338):
     #     for j in range(7):
     #         if j is 6:
@@ -41,16 +42,20 @@ for iteration in range(10):
     #         else:
     #             eq_data_menor.append(variables_per_class[j][i])
     # eq_data_menor = np.array(eq_data_menor)
-    for i in range(4100):
-        eq_data_menor.append(variables_per_class[0][i])
-    eq_data_menor += variables_per_class[1]
-    eq_data_menor += variables_per_class[2]
-    eq_data_menor += variables_per_class[3]
-    eq_data_menor += variables_per_class[4]
-    eq_data_menor += variables_per_class[5]
-    eq_data_menor += variables_per_class[6]
-    eq_data_menor = np.array(eq_data_menor)
-    X_train_menor, X_test_menor, y_train_menor, y_test_menor = train_test_split(eq_data_menor[:, 1:55], eq_data_menor[:, 55], test_size = test_avg)
+    # for i in range(90000):
+    #     eq_data_menor.append(variables_per_class[0][i])
+    # eq_data_menor += variables_per_class[1]
+    # eq_data_menor += variables_per_class[2]
+    # eq_data_menor += variables_per_class[3]
+    # eq_data_menor += variables_per_class[4]
+    # eq_data_menor += variables_per_class[5]
+    # eq_data_menor += variables_per_class[6]
+    # eq_data_menor = np.array(eq_data_menor)
+    
+    X_train_menor, X_test_menor, y_train_menor, y_test_menor = train_test_split(data[:, 1:55], data[:, 55], test_size = test_avg)
+    normalizer = Normalizer().fit(X_train_menor)
+    X_train_menor = normalizer.transform(X_train_menor)
+    X_test_menor = normalizer.transform(X_test_menor)
     ##
 
 
