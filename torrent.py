@@ -32,8 +32,8 @@ categorical_encoder_catastral = {'A': -10,
     '""': 50
 }
 
-def most_frequent(List): 
-    return max(set(List), key = List.count) 
+def most_frequent(lst): 
+    return max(set(lst), key = lst.count) 
 
 ##
 #data = np.genfromtxt(r'Data\Modelar_UH2020.csv', delimiter = ',')
@@ -212,11 +212,11 @@ with open(r'Data\Estimar_UH2020.csv', 'r') as read:
             line = line.split('|')
             file.write('{}|{}'.format(line[0], dictio_i[most_frequent(avg_prediction[line[0]])]))
 
-global_avg = []
-real_pred = []
-for sample in data:
-    if sample[0] in train_prediction:
-        global_avg.append(train_prediction[most_frequent(avg_prediction[sample[0]])])
-        real_pred.append(sample[55])
-print(classification_report(real_pred, global_avg))
+# global_avg = []
+# real_pred = []
+# for sample in data:
+#     if sample[0] in train_prediction:
+#         global_avg.append(train_prediction[most_frequent(avg_prediction[sample[0]])])
+#         real_pred.append(sample[55])
+# print(classification_report(real_pred, global_avg))
 ## 
