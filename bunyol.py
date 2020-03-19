@@ -58,7 +58,7 @@ for sample in data:
 data_proc = []
 
 # Muestras de la clase RESIDENTIAL
-data_proc += data_per_class[0][0:12000]
+data_proc += data_per_class[0][0:16000]
 # Muestras de las otras clases
 for i in range(6):
     data_proc += data_per_class[i + 1]
@@ -90,7 +90,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 20
+iterations = 50
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
@@ -99,7 +99,7 @@ predictions = {}
 debug_mode = True
 
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
-test_avg = 0.2
+test_avg = 0.18
 
 for ite in range(iterations):
     # Mostramos el porcentaje de entrenamiento
