@@ -1,7 +1,8 @@
 import xgboost as xgb
 import numpy as np
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, recall_score
+from sklearn.ensemble import RandomForestClassifier
 from sklearn import neighbors
 
 # read in data
@@ -43,14 +44,21 @@ X_test = eq_test[:, 1:55]
 y_test = eq_test[:, 55]
 
 # specify parameters via map
-nbrs = neighbors.KNeighborsClassifier(n_neighbors=7).fit(X_train, y_train)
+model = RandomForestClassifier(n_estimators=400, criterion='entropy', max_depth=60, min_samples_split=5, 
+        min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='log2', max_leaf_nodes=None, 
+        min_impurity_decrease=0.0, min_impurity_split=None, bootstrap=True, oob_score=False, n_jobs=-1, 
+        random_state=None, verbose=0, warm_start=False, class_weight=None, ccp_alpha=0.0, max_samples=None)
+model.fit(X_train, y_train)
+
 
 # make prediction
-y_pred = nbrs.predict(X_test)
+y_pred = model.predict(X_test)
 print(classification_report(y_test, y_pred))
+print(recall_score(y_test, y_pred, average = 'micro'))
+print(recall_score(y_test, y_pred, average = 'macro'))
 
 # file
-final_predictions = nbrs.predict(predict[:, 1:])
+final_predictions = model.predict(predict[:, 1:])
 with open('res-sagunt.txt', 'w') as file:
     with open(r'Data\Estimar_UH2020.csv', 'r') as read:
         for i in range(len(final_predictions)):

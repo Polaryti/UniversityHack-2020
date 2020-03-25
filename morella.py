@@ -2,8 +2,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, recall_score
-import random
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
 
 # Diccionario para codificar los nombres de las clases
 categorical_encoder_class = {'RESIDENTIAL': 0,
@@ -55,10 +54,17 @@ for _ in range(7):
 for sample in data:
     data_per_class[int(sample[54])].append(sample)
 
-
-
 # Variable que contendrá los datos procesados
 data_proc = []
+
+# Muestras de la clase RESIDENTIAL
+data_proc += data_per_class[0][:9000]
+# Muestras de las otras clases
+for i in range(6):
+    data_proc += data_per_class[i + 1]
+    
+# Volvemos a convertir los datos una vez procesados a una matriz
+data_proc = np.array(data_proc)
 
 # Variable que contendrá las muestras a predecir
 data_predict = []
@@ -96,54 +102,24 @@ debug_mode = True
 test_avg = 0.1
 
 for ite in range(iterations):
-    data_proc = []
-    # Muestras de la clase RESIDENTIAL
-    random.shuffle(data_per_class[0])
-    data_proc += data_per_class[0][:5000]
-
-    # Muestras de las otras clases
-    for i in range(6):
-        data_proc += data_per_class[i + 1]
-        
-    # Volvemos a convertir los datos una vez procesados a una matriz
-    data_proc = np.array(data_proc)
-
     # Mostramos el porcentaje de entrenamiento
     print('Entrenamiento completo al {}%'.format(ite/iterations * 100))
 
     np.random.shuffle(data_proc)
+
+    # Modelo RandomForest TOTAL
     X_train, X_test, y_train, y_test = train_test_split(data_proc[:, :54], data_proc[:, 54], test_size = test_avg)
-    
-    # Modelo XGB
-    # model = xgb.XGBClassifier(max_depth=None, learning_rate=0.1, n_estimators=400, verbosity=None, objective=None, 
-    #     booster=None, tree_method=None, n_jobs=-1, gamma=None, min_child_weight=None, max_delta_step=None, 
-    #     subsample=None, colsample_bytree=None, colsample_bylevel=None, colsample_bynode=None, reg_alpha=None, 
-    #     reg_lambda=None, scale_pos_weight=None, base_score=None, random_state=None)
-    # model.fit(X_train, y_train)
-    # y_pred = model.predict(X_test)
-    # if debug_mode:
-    #     #print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
-    #     print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
-    #     print(recall_score(y_test, y_pred, average='macro'))
-    
-    # predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
-    # for i in range(len(data_predict)):
-    #     if (data_predict[i, 0] not in predictions):
-    #         predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
-    #     else:
-    #         predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
         
-    # Modelo RandomForest
     model = RandomForestClassifier(n_estimators=400, criterion='entropy', max_depth=60, min_samples_split=5, 
         min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='log2', max_leaf_nodes=None, 
         min_impurity_decrease=0.0, min_impurity_split=None, bootstrap=True, oob_score=False, n_jobs=-1, 
-        random_state=None, verbose=0, warm_start=False, class_weight=None, ccp_alpha=0.0, max_samples=None)
+        random_state=None, verbose=0, warm_start=True, class_weight=None, ccp_alpha=0.0, max_samples=None)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     if debug_mode:
-        # print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
+        print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
         print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
-        print(recall_score(y_test, y_pred, average='macro'))
+        #print(accuracy_score(y_test, y_pred))
     
     predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
     for i in range(len(data_predict)):
@@ -151,6 +127,27 @@ for ite in range(iterations):
             predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
         else:
             predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
+
+    # Modelo RandomForest PARCIAL
+    # X_train, X_test, y_train, y_test = train_test_split(data_proc[:, 2:36], data_proc[:, 54], test_size = test_avg)
+        
+    # model = RandomForestClassifier(n_estimators=400, criterion='entropy', max_depth=60, min_samples_split=5, 
+    #     min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='log2', max_leaf_nodes=None, 
+    #     min_impurity_decrease=0.0, min_impurity_split=None, bootstrap=True, oob_score=False, n_jobs=-1, 
+    #     random_state=None, verbose=0, warm_start=False, class_weight=None, ccp_alpha=0.0, max_samples=None)
+    # model.fit(X_train, y_train)
+    # y_pred = model.predict(X_test)
+    # if debug_mode:
+    #     # print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
+    #     print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
+    #     print(accuracy_score(y_test, y_pred))
+    
+    # predictions_aux = model.predict(data_predict[:, 3:37].astype('float32'))
+    # for i in range(len(data_predict)):
+    #     if (data_predict[i, 0] not in predictions):
+    #         predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
+    #     else:
+    #         predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
 print('Entrenamiento completo')
 
 # Diccionario para decodificar el nombre de las clases
