@@ -1,11 +1,17 @@
-# Modelo utilizado en la fase I
-
+'''
+En este modelo se ha realizado:
+- CONSTRUCTIONYEAR -> Cambiar por antiguedad (NO CAMBIA NADA)
+- MAXBUILDINGFLOOR -> Las entradas null de -1 a 0 (NO CAMBIA NADA)
+- CADASTRALQUALITYID -> Transformar a one-hot
+'''
 import numpy as np
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, recall_score
+from sklearn.preprocessing import OneHotEncoder
 import random
+import pandas as pd
 
 # Diccionario para codificar los nombres de las clases
 categorical_encoder_class = {'RESIDENTIAL': 0,
@@ -36,16 +42,22 @@ with open(r'Data\Modelar_UH2020.txt') as read_file:
         line = line.replace('\n', '')
         # Separamos por el elemento delimitador
         line = line.split('|')
+        # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
+        line[52] = 2020 - int(line[52])
         if line[54] in categorical_encoder_catastral:
             line[54] = categorical_encoder_catastral[line[54]]
             if line[54] is 50:
-                line[53] = -1
+                line[53] = 0
         line[55] = categorical_encoder_class[line[55]]
         # No nos interesa el identificador de la muestra, lo descartamos
         data.append(line[1:])
 
+
+
 # Finalmente convertimos las muestras preprocesadas a una matriz
 data = np.array(data).astype('float32')
+
+data[:, 54] = pd.get_dummies(data = data[:, 54]).to_numpy()
 
 # Variable que contendrá las muestras separadas por clase
 data_per_class = []
@@ -55,7 +67,7 @@ for _ in range(7):
     data_per_class.append([])
 # Añadimos a la lista de cada clase las muestras de esta
 for sample in data:
-    data_per_class[int(sample[54])].append(sample)
+    data_per_class[int(len(sample) - 1)].append(sample)
 
 
 
@@ -73,10 +85,12 @@ with open(r'Data\Estimar_UH2020.txt') as read_file:
     for line in read_file.readlines():
         line = line.replace('\n', '')
         line = line.split('|')
+        # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
+        line[52] = 2020 - int(line[52])
         if line[54] in categorical_encoder_catastral:
             line[54] = categorical_encoder_catastral[line[54]]
             if line[54] is 50:
-                line[53] = -1
+                line[53] = 0
         data_predict.append(line)
 
 # Finalmente convertimos las muestras preprocesadas a una matriz (no númerica, nos interesa el id esta vez)
@@ -86,7 +100,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 10
+iterations = 4
 
 # Variable anterior, inicializada de nuevo
 predictions = {}

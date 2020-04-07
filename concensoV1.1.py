@@ -1,5 +1,8 @@
-# Modelo utilizado en la fase I
-
+'''
+En este modelo se ha realizado:
+- CONSTRUCTIONYEAR -> Cambiar por antiguedad (NO CAMBIA NADA)
+- MAXBUILDINGFLOOR -> Las entradas null de -1 a 0 (NO CAMBIA NADA)
+'''
 import numpy as np
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
@@ -36,10 +39,12 @@ with open(r'Data\Modelar_UH2020.txt') as read_file:
         line = line.replace('\n', '')
         # Separamos por el elemento delimitador
         line = line.split('|')
+        # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
+        line[52] = 2020 - int(line[52])
         if line[54] in categorical_encoder_catastral:
             line[54] = categorical_encoder_catastral[line[54]]
             if line[54] is 50:
-                line[53] = -1
+                line[53] = 0
         line[55] = categorical_encoder_class[line[55]]
         # No nos interesa el identificador de la muestra, lo descartamos
         data.append(line[1:])
@@ -73,10 +78,12 @@ with open(r'Data\Estimar_UH2020.txt') as read_file:
     for line in read_file.readlines():
         line = line.replace('\n', '')
         line = line.split('|')
+        # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
+        line[52] = 2020 - int(line[52])
         if line[54] in categorical_encoder_catastral:
             line[54] = categorical_encoder_catastral[line[54]]
             if line[54] is 50:
-                line[53] = -1
+                line[53] = 0
         data_predict.append(line)
 
 # Finalmente convertimos las muestras preprocesadas a una matriz (no númerica, nos interesa el id esta vez)
@@ -86,7 +93,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 10
+iterations = 4
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
