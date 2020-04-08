@@ -9,9 +9,7 @@ from sklearn.model_selection import train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, recall_score
-from sklearn.preprocessing import OneHotEncoder
 import random
-import pandas as pd
 
 # Diccionario para codificar los nombres de las clases
 categorical_encoder_class = {'RESIDENTIAL': 0,
@@ -23,11 +21,21 @@ categorical_encoder_class = {'RESIDENTIAL': 0,
     'AGRICULTURE': 6
 }
 
-# Diccionario para codificar las variables no numéricas
-categorical_encoder_catastral = {'A': -10,
-    'B': -20,
-    'C': -30,
-    '""': 50
+# Diccionario para codificar la variable categorica CADASTRALQUALITYID a un vector one-hot
+categorical_encoder_catastral = {
+    'A': [1, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
+    'B': [0, 1, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
+    'C': [0, 0, 1, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
+    '1': [0, 0, 0, 1, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
+    '2': [0, 0, 0, 0, 1, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
+    '3': [0, 0, 0, 0, 0, 1, 0, 0, 0 ,0 ,0 ,0 ,0],
+    '4': [0, 0, 0, 0, 0, 0, 1, 0, 0 ,0 ,0 ,0 ,0],
+    '5': [0, 0, 0, 0, 0, 0, 0, 1, 0 ,0 ,0 ,0 ,0],
+    '6': [0, 0, 0, 0, 0, 0, 0, 0, 1 ,0 ,0 ,0 ,0],
+    '7': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,1 ,0 ,0 ,0],
+    '8': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,1 ,0 ,0],
+    '9': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,1 ,0],
+    '""': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,1]
 }
 
 # Variable que contendrá las muestras
@@ -44,20 +52,15 @@ with open(r'Data\Modelar_UH2020.txt') as read_file:
         line = line.split('|')
         # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
         line[52] = 2020 - int(line[52])
-        if line[54] in categorical_encoder_catastral:
-            line[54] = categorical_encoder_catastral[line[54]]
-            if line[54] is 50:
-                line[53] = 0
+        if line[53] is '':
+            line[53] = 0
         line[55] = categorical_encoder_class[line[55]]
-        # No nos interesa el identificador de la muestra, lo descartamos
-        data.append(line[1:])
-
+        # Codificamos CADASTRALQUALITYID y arreglamos la muestra
+        data.append(line[1:54] + categorical_encoder_catastral[line[54]] + [line[55]])
 
 
 # Finalmente convertimos las muestras preprocesadas a una matriz
 data = np.array(data).astype('float32')
-
-data[:, 54] = pd.get_dummies(data = data[:, 54]).to_numpy()
 
 # Variable que contendrá las muestras separadas por clase
 data_per_class = []
@@ -67,7 +70,7 @@ for _ in range(7):
     data_per_class.append([])
 # Añadimos a la lista de cada clase las muestras de esta
 for sample in data:
-    data_per_class[int(len(sample) - 1)].append(sample)
+    data_per_class[int(sample[len(sample) - 1])].append(sample)
 
 
 
@@ -83,15 +86,16 @@ with open(r'Data\Estimar_UH2020.txt') as read_file:
     read_file.readline()
     # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valos catastral)
     for line in read_file.readlines():
+        # Eliminamos el salto de línea final
         line = line.replace('\n', '')
+        # Separamos por el elemento delimitador
         line = line.split('|')
         # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
         line[52] = 2020 - int(line[52])
-        if line[54] in categorical_encoder_catastral:
-            line[54] = categorical_encoder_catastral[line[54]]
-            if line[54] is 50:
-                line[53] = 0
-        data_predict.append(line)
+        if line[53] is '':
+            line[53] = 0
+        # Codificamos CADASTRALQUALITYID y arreglamos la muestra
+        data_predict.append(line[:54] + categorical_encoder_catastral[line[54]])
 
 # Finalmente convertimos las muestras preprocesadas a una matriz (no númerica, nos interesa el id esta vez)
 data_predict = np.array(data_predict)
@@ -100,7 +104,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 4
+iterations = 20
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
@@ -128,7 +132,8 @@ for ite in range(iterations):
     print('Entrenamiento completo al {}%'.format(ite/iterations * 100))
 
     np.random.shuffle(data_proc)
-    X_train, X_test, y_train, y_test = train_test_split(data_proc[:, :54], data_proc[:, 54], test_size = test_avg)
+    last_position = len(data_proc[0]) - 1
+    X_train, X_test, y_train, y_test = train_test_split(data_proc[:, :last_position], data_proc[:, last_position], test_size = test_avg)
     
     # Modelo XGB
     model = xgb.XGBClassifier(max_depth=None, learning_rate=0.1, n_estimators=400, verbosity=None, objective=None, 
