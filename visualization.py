@@ -1,195 +1,108 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from numpy import array
-
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, recall_score
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+import seaborn as sns
 import random
+import XGB_RandomForestBasic_bunyol
 
-# Diccionario para codificar los nombres de las clases
-categorical_encoder_class = {'RESIDENTIAL': 0,
-    'INDUSTRIAL': 1,
-    'PUBLIC': 2,
-    'OFFICE': 3,
-    'OTHER': 4,
-    'RETAIL': 5,
-    'AGRICULTURE': 6
-}
+categories_list = XGB_RandomForestBasic_bunyol.get_categories_list()
+modelar_df = XGB_RandomForestBasic_bunyol.get_modelar_data()
+estimar_df = XGB_RandomForestBasic_bunyol.get_estimar_data()
 
-# Diccionario para codificar las variables no numéricas
-categorical_encoder_catastral = {'A': -10,
-    'B': -20,
-    'C': -30,
-    '""': 50
-}
+def hist_decomposition():
+    count_df = pd.DataFrame(columns = categories_list)
+    for i in range(len(categories_list)):
+        count_df[categories_list[i]] = [pd.DataFrame(modelar_df.loc[modelar_df[54] == i]).shape[0]]
+    count_df.plot(kind='bar', title='Número de elementos de cada clase')
 
-# Variable que contendrá las muestras
-data = []
 
-with open(r'Data/Modelar_UH2020.txt') as read_file:
-    # La primera linea del documento es el nombre de las variables, no nos interesa
-    read_file.readline()
-    # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
-    for line in read_file.readlines():
-        # Eliminamos el salto de línea final
-        line = line.replace('\n', '')
-        # Separamos por el elemento delimitador
-        line = line.split('|')
-        if line[54] in categorical_encoder_catastral:
-            line[54] = categorical_encoder_catastral[line[54]]
-            if line[54] is 50:
-                line[53] = -1
-        line[55] = categorical_encoder_class[line[55]]
-        # No nos interesa el identificador de la muestra, lo descartamos
-        data.append(line[1:])
+def hist_over_and_undersampling(y_res):
+    y_res.value_counts().plot(kind='bar', title='Número de muestras por clase')
 
-# Finalmente convertimos las muestras preprocesadas a una matriz
-data = np.array(data).astype('float32')
 
-# Variable que contendrá las muestras separadas por clase
-data_per_class = []
-# Añadimos una lista vacía por clase
-for _ in range(7):         
-    data_per_class.append([])
-# Añadimos a la lista de cada clase las muestras de esta
-for sample in data:
-    data_per_class[int(sample[54])].append(sample)
+def pca_general(X, y, d2=True, d3=True, pie_evr=True):
+    if d2 == True:
+        pca_2d(X, y)
+    if d3 == True:
+        pca_3d(X, y)
 
-data_array = array(data_per_class)
+def pca_2d(X, y, n_components=2, pie_evr=True):
+    pca = PCA(n_components=n_components)
+    pca_transform = pca.fit_transform(X)
+    X['pca_first'] = pca_transform[:,0]
+    X['pca_second'] = pca_transform[:,1]
+    if pie_evr:
+        pie_explained_variance_ratio(pca.explained_variance_ratio_)
+    plt.figure(figsize=(14,10))
+    sns.scatterplot(
+    x="pca_first", y="pca_second",
+    palette=sns.color_palette("hls", 7),
+    hue='Class',
+    data=X,
+    legend="full",
+    alpha=0.3
+    )
+    plt.show()
 
-min_x = float("inf")
-max_x = float("-inf")
-min_y = float("inf")
-max_y = float("-inf")
 
-for value in data_array:
-    x = value[0][1]
-    y = value[0][2]
-    min_x = min(x, min_x)
-    max_x = max(x, max_x)
-    min_y = min(y, min_y)
-    max_y = max(y, max_y)
+def pca_3d(X, y, n_components=3, pie_evr=True):
+    pca = PCA(n_components=n_components)
+    pca_transform = pca.fit_transform(X)
+    X['pca_first'] = pca_transform[:,0]
+    X['pca_second'] = pca_transform[:,1]
+    X['pca_third'] = pca_transform[:,2]
+    if pie_evr:
+        pie_explained_variance_ratio(pca.explained_variance_ratio_)
+    ax = plt.figure(figsize=(14,10)).gca(projection='3d')
+    ax.scatter(
+    xs=X["pca_first"],
+    ys=X["pca_second"],
+    zs=X["pca_third"],
+    c=X['Class'],
+    cmap='tab10'
+    )
+    ax.set_xlabel('pca_first')
+    ax.set_ylabel('pca_second')
+    ax.set_zlabel('pca_third')
+    plt.show()
 
-print(min_x, max_x, min_y, max_y)
-#print(data_array[6][0])
-"""
-plt.plot(data_per_class)
-plt.show()
-"""
-"""
-# Variable que contendrá los datos procesados
-data_proc = []
 
-# Variable que contendrá las muestras a predecir
-data_predict = []
+def tsne(X, y, perplexity):
+    for perp in perplexity:
+        tsne = TSNE(n_components=2, verbose=0, perplexity=perp, n_iter=400)
+        features = list(X.columns.values)
+        tsne_results = tsne.fit_transform(X[features].values)
+        X['tsne-2d-first'] = tsne_results[:,0]
+        X['tsne-2d-second'] = tsne_results[:,1]
+        print('Perplexity = ',perp)
+        plt.figure(figsize=(14,10))
+        sns.scatterplot(
+        x="tsne-2d-first", y="tsne-2d-first",
+        hue="y",
+        palette=sns.color_palette("hls", 7),
+        data=X,
+        legend="full",
+        alpha=0.3
+        )
+        plt.show()
 
-# Mismo procesamiento de datos que para el conjunto inicial
-with open(r'Data\Estimar_UH2020.txt') as read_file:
-    # La primera linea del documento es el nombre de las variables, no nos interesa
-    read_file.readline()
-    # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valos catastral)
-    for line in read_file.readlines():
-        line = line.replace('\n', '')
-        line = line.split('|')
-        if line[54] in categorical_encoder_catastral:
-            line[54] = categorical_encoder_catastral[line[54]]
-            if line[54] is 50:
-                line[53] = -1
-        data_predict.append(line)
 
-# Finalmente convertimos las muestras preprocesadas a una matriz (no númerica, nos interesa el id esta vez)
-data_predict = np.array(data_predict)
-
-# Variable que contendra las predicciones globales de cada muestra
-predictions = {}
-
-# Número de iteraciones total por módelo
-iterations = 10
-
-# Variable anterior, inicializada de nuevo
-predictions = {}
-
-# Si True, muestra información de cada modelo local tras entrenarlo
-debug_mode = True
-
-# Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
-test_avg = 0.1
-
-for ite in range(iterations):
-    data_proc = []
-    # Muestras de la clase RESIDENTIAL
-    random.shuffle(data_per_class[0])
-    data_proc += data_per_class[0][:5000]
-
-    # Muestras de las otras clases
-    for i in range(6):
-        data_proc += data_per_class[i + 1]
-        
-    # Volvemos a convertir los datos una vez procesados a una matriz
-    data_proc = np.array(data_proc)
-
-    # Mostramos el porcentaje de entrenamiento
-    print('Entrenamiento completo al {}%'.format(ite/iterations * 100))
-
-    np.random.shuffle(data_proc)
-    X_train, X_test, y_train, y_test = train_test_split(data_proc[:, :54], data_proc[:, 54], test_size = test_avg)
-    
-    # Modelo XGB
-    # model = xgb.XGBClassifier(max_depth=None, learning_rate=0.1, n_estimators=400, verbosity=None, objective=None, 
-    #     booster=None, tree_method=None, n_jobs=-1, gamma=None, min_child_weight=None, max_delta_step=None, 
-    #     subsample=None, colsample_bytree=None, colsample_bylevel=None, colsample_bynode=None, reg_alpha=None, 
-    #     reg_lambda=None, scale_pos_weight=None, base_score=None, random_state=None)
-    # model.fit(X_train, y_train)
-    # y_pred = model.predict(X_test)
-    # if debug_mode:
-    #     #print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
-    #     print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
-    #     print(recall_score(y_test, y_pred, average='macro'))
-    
-    # predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
-    # for i in range(len(data_predict)):
-    #     if (data_predict[i, 0] not in predictions):
-    #         predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
-    #     else:
-    #         predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
-        
-    # Modelo RandomForest
-    model = RandomForestClassifier(n_estimators=400, criterion='entropy', max_depth=60, min_samples_split=5, 
-        min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='log2', max_leaf_nodes=None, 
-        min_impurity_decrease=0.0, min_impurity_split=None, bootstrap=True, oob_score=False, n_jobs=-1, 
-        random_state=None, verbose=0, warm_start=False, class_weight=None, ccp_alpha=0.0, max_samples=None)
-    model.fit(X_train, y_train)
-    y_pred = model.predict(X_test)
-    if debug_mode:
-        # print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
-        print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
-        print(recall_score(y_test, y_pred, average='macro'))
-    
-    predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
-    for i in range(len(data_predict)):
-        if (data_predict[i, 0] not in predictions):
-            predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
-        else:
-            predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
-print('Entrenamiento completo')
-
-# Diccionario para decodificar el nombre de las clases
-categorical_decoder_class = {0: 'RESIDENTIAL',
-    1: 'INDUSTRIAL',
-    2: 'PUBLIC',
-    3: 'OFFICE',
-    4: 'OTHER',
-    5: 'RETAIL',
-    6: 'AGRICULTURE'}
-
-def most_frequent(lst): 
-    return max(set(lst), key = lst.count) 
-
-with open(r'Minsait_Universitat Politècnica de València_Astralaria.txt', 'w') as write_file:
-    write_file.write('ID|CLASE\n')
-    for sample in data_predict:
-        write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
-"""
+def pie_explained_variance_ratio(explained_variance_ratio):
+    evr_df = pd.DataFrame(explained_variance_ratio)
+    evr_df.plot.pie(y=0, figsize=(5,5))
+    i = 0
+    index = 0
+    for item in explained_variance_ratio:
+        i+=item
+        print('La componente principal nº {} es responsable del {} por ciento de la varianza.'.format(index, item*100))
+        index += 1
+    i*=100
+    print('Captura el {} por ciento de la información total'.format(i))
