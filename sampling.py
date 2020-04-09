@@ -1,8 +1,26 @@
 from imblearn.under_sampling import SMOTE, ADASYN, BorderlineSMOTE, KMeansSMOTE, RandomOverSampler, SVMSMOTE
 from imblearn.over_sampling import AllKNN, TomekLinks, NearMiss, ClusterCentroids, OneSidedSelection, RandomUnderSampler, CondensedNearestNeighbour, EditedNearestNeighbours, RepeatedEditedNearestNeighbours, InstanceHardnessThreshold
+from imblearn.combine import SMOTEENN, SMOTETomek
 import imblearn.over_sampling
 from sklearn.datasets import make_classification
 import visualization
+
+#OVERSAMPLING AND UNDERSAMPLING COMBINED
+def smote_tomek(X, y, pca2d=True, pca3d=True, tsne=True, pie_evr=True):
+    smt = SMOTETomek(random_state=42)
+    X_res, y_res = smt.fit_resample(X, y)
+    visualization.hist_over_and_undersampling(y_res)
+    visualization.pca_general(X_res, y_res, d2=pca2d, d3=pca3d, pie_evr=pie_evr)
+    return X_res, y_res
+
+
+def smote_enn(X, y, pca2d=True, pca3d=True, tsne=True, pie_evr=True):
+    sme = SMOTEENN(random_state=42)
+    X_res, y_res = sme.fit_resample(X, y)
+    visualization.hist_over_and_undersampling(y_res)
+    visualization.pca_general(X_res, y_res, d2=pca2d, d3=pca3d, pie_evr=pie_evr)
+    return X_res, y_res
+
 
 #OVERSAMPLING
 def smote(X, y, pca2d=True, pca3d=True, tsne=True, pie_evr=True):
