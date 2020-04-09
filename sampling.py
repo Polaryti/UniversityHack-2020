@@ -1,12 +1,6 @@
-<<<<<<< HEAD
-from imblearn.under_sampling import SMOTE, ADASYN, BorderlineSMOTE, KMeansSMOTE, RandomOverSampler, SVMSMOTE
-from imblearn.over_sampling import AllKNN, TomekLinks, NearMiss, ClusterCentroids, OneSidedSelection, RandomUnderSampler, CondensedNearestNeighbour, EditedNearestNeighbours, RepeatedEditedNearestNeighbours, InstanceHardnessThreshold
-from imblearn.combine import SMOTEENN, SMOTETomek
-=======
 from imblearn.over_sampling import SMOTE, ADASYN, BorderlineSMOTE, KMeansSMOTE, RandomOverSampler, SVMSMOTE
 from imblearn.under_sampling import AllKNN, TomekLinks, NearMiss, ClusterCentroids, OneSidedSelection, RandomUnderSampler, CondensedNearestNeighbour, EditedNearestNeighbours, RepeatedEditedNearestNeighbours, InstanceHardnessThreshold
->>>>>>> d06c9cec48e7e5e9d3de1146f337e9e41df44cc5
-import imblearn.over_sampling
+from imblearn.combine import SMOTETomek, SMOTEENN
 from sklearn.datasets import make_classification
 import visualization
 
