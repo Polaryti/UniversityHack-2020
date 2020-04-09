@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 from imblearn.under_sampling import SMOTE, ADASYN, BorderlineSMOTE, KMeansSMOTE, RandomOverSampler, SVMSMOTE
 from imblearn.over_sampling import AllKNN, TomekLinks, NearMiss, ClusterCentroids, OneSidedSelection, RandomUnderSampler, CondensedNearestNeighbour, EditedNearestNeighbours, RepeatedEditedNearestNeighbours, InstanceHardnessThreshold
 from imblearn.combine import SMOTEENN, SMOTETomek
+=======
+from imblearn.over_sampling import SMOTE, ADASYN, BorderlineSMOTE, KMeansSMOTE, RandomOverSampler, SVMSMOTE
+from imblearn.under_sampling import AllKNN, TomekLinks, NearMiss, ClusterCentroids, OneSidedSelection, RandomUnderSampler, CondensedNearestNeighbour, EditedNearestNeighbours, RepeatedEditedNearestNeighbours, InstanceHardnessThreshold
+>>>>>>> d06c9cec48e7e5e9d3de1146f337e9e41df44cc5
 import imblearn.over_sampling
 from sklearn.datasets import make_classification
 import visualization
@@ -26,8 +31,8 @@ def smote_enn(X, y, pca2d=True, pca3d=True, tsne=True, pie_evr=True):
 def smote(X, y, pca2d=True, pca3d=True, tsne=True, pie_evr=True):
     smote = SMOTE(random_state=0,n_jobs=12)
     X_res, y_res = smote.fit_resample(X, y)
-    visualization.hist_over_and_undersampling(y_res)
-    visualization.pca_general(X_res, y_res, d2=pca2d, d3=pca3d, pie_evr=pie_evr)
+    #visualization.hist_over_and_undersampling(y_res)
+    #visualization.pca_general(X_res, y_res, d2=pca2d, d3=pca3d, pie_evr=pie_evr)
     return X_res, y_res
 
 
