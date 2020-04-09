@@ -28,17 +28,3 @@ def dividir_dataset(df, train_percentage=0.8, test_percentage=0.2, randomized=Fa
         df = pd.concat([df, df_list[0]]).drop_duplicates(keep=False)
         #Devuelve una tupla, en 0 el train y en 1 el test.
         return df.sample(frac=1), df_list[0].sample(frac=1)
-
-
-def comprobar_accuracy(df_test_original, df_test_obtenido, id_muestra, clase):
-    classes_dict = {0 : 'RESIDENTIAL', 1 : 'INDUSTRIAL', 2 : 'PUBLIC', 3 : 'RETAIL', 4 : 'OFFICE', 5 : 'OTHER', 6 : 'AGRICULTURE'}
-    for i in range(7):
-        obtenido_df = df_test_obtenido.loc[df_test_obtenido[clase] == i]
-        original_df = df_test_original.loc[df_test_original[clase] == i]
-        obtenido_df_list = obtenido_df[id_muestra].values.tolist()
-        original_df_list = original_df[id_muestra].values.tolist()
-        print(len(list(set(obtenido_df_list).intersection(original_df_list))))
-        print(len(original_df_list))
-        perc_accuracy = (len(list(set(obtenido_df_list).intersection(original_df_list))) / float(len(original_df_list))) * 100
-        print('Clase {}: {} por ciento de acierto'.format(classes_dict[i], str(perc_accuracy)))
-
