@@ -64,7 +64,7 @@ X, Y = samp.smote(data[:, :pos], data[:, pos])
 
 param_dict = {
         'n_estimators': [750, 775, 800],
-        'criterion': ['gini'],
+        'criterion': ['gini', 'entropy'],
         'min_samples_split': [4, 5, 6, 7, 8],
         'min_samples_leaf': [3, 4],
         'n_jobs': [-1]

@@ -96,6 +96,13 @@ with open(r'Data\Estimar_UH2020.txt') as read_file:
 data_predict = np.array(data_predict)
 
 
+predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
+for i in range(len(data_predict)):
+    if (data_predict[i, 0] not in predictions):
+        predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
+    else:
+        predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
+
 # Diccionario para decodificar el nombre de las clases
 categorical_decoder_class = {0: 'RESIDENTIAL',
     1: 'INDUSTRIAL',
