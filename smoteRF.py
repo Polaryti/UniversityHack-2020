@@ -57,7 +57,7 @@ random.shuffle(data)
 data = np.array(data).astype('float32')
 
 pos = len(data[0]) - 1
-X, Y = samp.smote(data[:, :pos], data[:, pos])
+X, Y = samp.smote_tomek(data[:, :pos], data[:, pos])
 
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.23)
 
@@ -115,7 +115,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'SMOTE+RandomForest.txt', 'w') as write_file:
+with open(r'SMOTEMK+RandomForest.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
