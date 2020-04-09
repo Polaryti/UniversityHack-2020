@@ -57,48 +57,46 @@ with open(r'Data\Modelar_UH2020.txt') as read_file:
 
 random.shuffle(data)
 data = np.array(data).astype('float32')
+for _ in range(10):
+    # Variable que contendrá las muestras separadas por clase
+    data_per_class = []
+    data_proc = []
 
-# Variable que contendrá las muestras separadas por clase
-data_per_class = []
-data_proc = []
+    # Añadimos una lista vacía por clase
+    for _ in range(7):         
+        data_per_class.append([])
+    # Añadimos a la lista de cada clase las muestras de esta
+    for sample in data:
+        data_per_class[int(sample[len(sample) - 1])].append(sample)
+    # Muestras de la clase RESIDENTIAL
+    random.shuffle(data_per_class[0])
+    data_proc += data_per_class[0][:5000]
 
-# Añadimos una lista vacía por clase
-for _ in range(7):         
-    data_per_class.append([])
-# Añadimos a la lista de cada clase las muestras de esta
-for sample in data:
-    data_per_class[int(sample[len(sample) - 1])].append(sample)
-# Muestras de la clase RESIDENTIAL
-random.shuffle(data_per_class[0])
-data_proc += data_per_class[0][:5000]
+    # Muestras de las otras clases
+    for i in range(6):
+        data_proc += data_per_class[i + 1]
+            
+    # Volvemos a convertir los datos una vez procesados a una matriz
+    data_proc = np.array(data_proc)
 
-# Muestras de las otras clases
-for i in range(6):
-    data_proc += data_per_class[i + 1]
-        
-# Volvemos a convertir los datos una vez procesados a una matriz
-data_proc = np.array(data_proc)
+    np.random.shuffle(data_proc)
 
-np.random.shuffle(data_proc)
+    param_dict = {
+        'n_estimators': [750, 775, 800],
+        'criterion': ['gini'],
+        'min_samples_split': [4, 5, 6, 7, 8],
+        'min_samples_leaf': [3, 4],
+        'n_jobs': [-1]
+    }
 
-param_dict = {
-    'n_estimators': [775],
-    'criterion': ['gini', 'entropy'],
-    # 'min_samples_split': [2, 3, 4, 5, 6, 7, 8],
-    # 'min_samples_leaf': [1, 2, 3, 4],
-    # 'max_features': ['auto', 'log2'],
-    # 'bootstrap': [False, True],
-    'n_jobs': [-1]
-}
+    gs = GridSearchCV(
+        estimator = RandomForestClassifier(), 
+        param_grid = param_dict,
+        scoring = 'balanced_accuracy',
+        n_jobs = -1
+        )
 
-gs = GridSearchCV(
-    estimator = RandomForestClassifier(), 
-    param_grid = param_dict,
-    scoring = 'balanced_accuracy',
-    n_jobs = -1
-    )
-
-pred_pos = len(data_proc[0]) - 1
-gs.fit(data_proc[:,:pred_pos], data_proc[:,pred_pos])
-print(gs.best_score_)
-print(gs.best_params_)
+    pred_pos = len(data_proc[0]) - 1
+    gs.fit(data_proc[:,:pred_pos], data_proc[:,pred_pos])
+    print(gs.best_score_)
+    print(gs.best_params_)
