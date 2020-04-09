@@ -57,7 +57,6 @@ with open(r'Data\Modelar_UH2020.txt') as read_file:
 
 random.shuffle(data)
 data = np.array(data).astype('float32')
-
 for _ in range(10):
     # Variable que contendrá las muestras separadas por clase
     data_per_class = []
@@ -96,7 +95,6 @@ for _ in range(10):
         scoring = 'balanced_accuracy',
         n_jobs = -1
         )
-
 
     pred_pos = len(data_proc[0]) - 1
     gs.fit(data_proc[:,:pred_pos], data_proc[:,pred_pos])
