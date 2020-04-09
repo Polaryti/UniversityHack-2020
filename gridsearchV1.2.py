@@ -1,5 +1,5 @@
 '''
-En este modelo se ha realizado Grid Search de Random Forest con SOLO 6000 MUESTRAS DE RESIDENTIAL
+En este modelo se ha realizado Grid Search de Random Forest con SMOTE
 '''
 import numpy as np
 from sklearn.model_selection import train_test_split, GridSearchCV
@@ -7,6 +7,7 @@ import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, recall_score
 import random
+import sampling as samp
 
 # Diccionario para codificar los nombres de las clases
 categorical_encoder_class = {'RESIDENTIAL': 0,
@@ -58,47 +59,24 @@ with open(r'Data\Modelar_UH2020.txt') as read_file:
 random.shuffle(data)
 data = np.array(data).astype('float32')
 
-for _ in range(10):
-    # Variable que contendrá las muestras separadas por clase
-    data_per_class = []
-    data_proc = []
+pos = len(data[0]) - 1
+X, Y = samp.smote(data[:, :pos], data[:, pos])
 
-    # Añadimos una lista vacía por clase
-    for _ in range(7):         
-        data_per_class.append([])
-    # Añadimos a la lista de cada clase las muestras de esta
-    for sample in data:
-        data_per_class[int(sample[len(sample) - 1])].append(sample)
-    # Muestras de la clase RESIDENTIAL
-    random.shuffle(data_per_class[0])
-    data_proc += data_per_class[0][:5000]
-
-    # Muestras de las otras clases
-    for i in range(6):
-        data_proc += data_per_class[i + 1]
-            
-    # Volvemos a convertir los datos una vez procesados a una matriz
-    data_proc = np.array(data_proc)
-
-    np.random.shuffle(data_proc)
-
-    param_dict = {
+param_dict = {
         'n_estimators': [750, 775, 800],
         'criterion': ['gini'],
         'min_samples_split': [4, 5, 6, 7, 8],
         'min_samples_leaf': [3, 4],
         'n_jobs': [-1]
-    }
+}
 
-    gs = GridSearchCV(
+gs = GridSearchCV(
         estimator = RandomForestClassifier(), 
         param_grid = param_dict,
         scoring = 'balanced_accuracy',
         n_jobs = -1
-        )
+)
 
-
-    pred_pos = len(data_proc[0]) - 1
-    gs.fit(data_proc[:,:pred_pos], data_proc[:,pred_pos])
-    print(gs.best_score_)
-    print(gs.best_params_)
+gs.fit(X, Y)
+print(gs.best_score_)
+print(gs.best_params_)
