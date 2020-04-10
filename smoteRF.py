@@ -57,7 +57,7 @@ random.shuffle(data)
 data = np.array(data).astype('float32')
 
 pos = len(data[0]) - 1
-X, Y = samp.smote(data[:, :pos], data[:, pos])
+X, Y = samp.smote_tomek(data[:, :pos], data[:, pos])
 
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size = 0.23)
 
@@ -96,6 +96,13 @@ with open(r'Data\Estimar_UH2020.txt') as read_file:
 data_predict = np.array(data_predict)
 
 
+predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
+for i in range(len(data_predict)):
+    if (data_predict[i, 0] not in predictions):
+        predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
+    else:
+        predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
+
 # Diccionario para decodificar el nombre de las clases
 categorical_decoder_class = {0: 'RESIDENTIAL',
     1: 'INDUSTRIAL',
@@ -108,7 +115,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'SMOTE+RandomForest.txt', 'w') as write_file:
+with open(r'SMOTEMK+RandomForest.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))

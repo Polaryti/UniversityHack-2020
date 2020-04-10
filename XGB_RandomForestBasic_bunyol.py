@@ -1,3 +1,4 @@
+ # coding=utf-8
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -56,7 +57,6 @@ def get_modelar_data():
     data_list = np.array(data_list).astype('float32')
     #Convertimos dicha matriz a un dataframe de pandas.
     modelar_df = pd.DataFrame(data = data_list)
-
     return modelar_df
 
 

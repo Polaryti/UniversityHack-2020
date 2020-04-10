@@ -1,14 +1,12 @@
-'''
-En este modelo se ha realizado Grid Search de Random Forest con SMOTE
-'''
-import numpy as np
-from sklearn.model_selection import train_test_split, GridSearchCV
-import xgboost as xgb
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, recall_score
+ # coding=utf-8
+from xgboost import XGBClassifier
+from sklearn.model_selection import GridSearchCV
+#import sampling
 import random
-import sampling as samp
+import numpy as np
+#from sampling import tomeklinks, aiiknn
 
+# Sección datos
 # Diccionario para codificar los nombres de las clases
 categorical_encoder_class = {'RESIDENTIAL': 0,
     'INDUSTRIAL': 1,
@@ -38,7 +36,7 @@ categorical_encoder_catastral = {
 
 # Variable que contendrá las muestras
 data = []
-
+"""
 with open(r'Data\Modelar_UH2020.txt') as read_file:
     # La primera linea del documento es el nombre de las variables, no nos interesa
     read_file.readline()
@@ -59,24 +57,60 @@ with open(r'Data\Modelar_UH2020.txt') as read_file:
 random.shuffle(data)
 data = np.array(data).astype('float32')
 
+print(data.shape)
 pos = len(data[0]) - 1
-X, Y = samp.smote(data[:, :pos], data[:, pos])
+X, Y = aiiknn(data[:, :pos], data[:, pos])
+print(X.shape)
+"""
 
-param_dict = {
-        'n_estimators': [750, 775, 800],
-        'criterion': ['gini', 'entropy'],
-        'min_samples_split': [4, 5, 6, 7, 8],
-        'min_samples_leaf': [3, 4],
-        'n_jobs': [-1]
-}
 
-gs = GridSearchCV(
-        estimator = RandomForestClassifier(), 
-        param_grid = param_dict,
-        scoring = 'balanced_accuracy',
-        n_jobs = -1
+# Sección Grid Search 
+estimator = XGBClassifier(
+    random_state = 42,
+    objective = 'multi:softmax',
+    tree_method = 'gpu_hist',
+    eval_metric = "mlogloss",
+    nthread = 1,                     # 4 -> 1: Si no, el SO los mata
+    seed = 42,
 )
 
-gs.fit(X, Y)
-print(gs.best_score_)
-print(gs.best_params_)
+#Generate lists of floats for each parameter
+def gen(start, stop, increment):
+  gen_list = []
+  while start < stop:
+    gen_list.append(start)
+    start += increment
+  return gen_list
+
+
+params = [(0.0, 0.4, 0.2), (0.2, 0.6, 0.2), (2, 10, 2), (250, 1000, 250), (0.25, 1.0, 0.25), (0.25, 1.0, 0.25), (0.0, 0.4, 0.2), (0.5, 2.0, 0.5)]
+res = []
+for i in range(len(params)):
+  res.append(gen(params[i][0], params[i][1], params[i][2]))
+
+for i in res:
+  print(i)
+
+parameters = {
+    'colsample_bytree' : res[0],
+    'subsample' : res[1],
+    'max_depth': res[2],
+    'n_estimators': res[3],
+    'learning_rate': res[4],
+    'gamma' : res[5],
+    'reg_alpha' : res[6],
+    'reg_lambda' : res[7]
+}
+
+grid_search = GridSearchCV(
+    estimator = estimator,
+    param_grid = parameters,
+    scoring = 'balanced_accuracy',
+    n_jobs = -1,              # 15 -> -1: Para utilizar todos los disponibles
+    cv = 5,
+    verbose = True
+)
+
+grid_search.fit(X, Y)
+
+print(grid_search.best_estimator_)
