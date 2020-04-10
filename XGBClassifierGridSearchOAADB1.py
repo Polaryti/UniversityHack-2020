@@ -81,7 +81,7 @@ def gen(start, stop, increment):
     start += increment
   return gen_list
 
-params = [(0.0, 0.4, 0.2), (0.0, 0.6, 0.2), (0, 10, 2), (0, 1000, 200), (0.0, 1.0, 0.25), (0.0, 1.0, 0.25), (0.0, 0.4, 0.2), (0.0, 2.0, 0.5)]
+params = [(0.2, 0.6, 0.2), (0.2, 0.8, 0.2), (2, 12, 2), (200, 1200, 200), (0.25, 1.25, 0.25), (0.25, 1.25, 0.25), (0.2, 0.6, 0.2), (0.5, 2.5, 0.5)]
 res = []
 for i in range(len(params)):
   res.append(gen(params[i][0], params[i][1], params[i][2]))
@@ -103,9 +103,9 @@ parameters = {
 grid_search = GridSearchCV(
     estimator = estimator,
     param_grid = parameters,
-    scoring = 'roc_auc',
-    n_jobs = -1,              # 15 -> -1: Para utilizar todos los disponibles
-    cv = 10,
+    scoring = 'balanced_accuracy',
+    n_jobs = 5,              # 15 -> -1: Para utilizar todos los disponibles
+    cv = 5,
     verbose = True
 )
 
