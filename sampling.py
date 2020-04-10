@@ -74,16 +74,16 @@ def svm_smote(X, y, pca2d=True, pca3d=True, tsne=True, pie_evr=True):
 def aiiknn(X, y, pca2d=True, pca3d=True, tsne=True, pie_evr=True):
     allknn = AllKNN()
     X_res, y_res = allknn.fit_resample(X,y)
-    visualization.hist_over_and_undersampling(y_res)
-    visualization.pca_general(X_res, y_res, d2=pca2d, d3=pca3d, pie_evr=pie_evr)
+    # visualization.hist_over_and_undersampling(y_res)
+    # visualization.pca_general(X_res, y_res, d2=pca2d, d3=pca3d, pie_evr=pie_evr)
     return X_res, y_res
 
 
 def tomeklinks(X, y, pca2d=True, pca3d=True, tsne=True, pie_evr=True):
     tl = TomekLinks()
     X_res, y_res = tl.fit_resample(X, y)
-    visualization.hist_over_and_undersampling(y_res)
-    visualization.pca_general(X_res, y_res, d2=pca2d, d3=pca3d, pie_evr=pie_evr)
+    # visualization.hist_over_and_undersampling(y_res)
+    # visualization.pca_general(X_res, y_res, d2=pca2d, d3=pca3d, pie_evr=pie_evr)
     return X_res, y_res
 
 
