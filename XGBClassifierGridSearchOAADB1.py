@@ -66,11 +66,11 @@ print(X.shape)
 
 # Sección Grid Search 
 estimator = XGBClassifier(
-    random_state = 420,
-    objective = 'binary:logistic',
+    random_state = 42,
+    objective = 'multi:softmax',
     tree_method = 'gpu_hist',
-    eval_metric = "logloss",
-    nthread = -1,                     # 4 -> -1: Para utilizar todos los disponibles
+    eval_metric = "mlogloss",
+    nthread = 1,                     # 4 -> 1: Si no, el SO los mata
     seed = 42,
 )
 
@@ -81,6 +81,7 @@ def gen(start, stop, increment):
     gen_list.append(start)
     start += increment
   return gen_list
+
 
 params = [(0.0, 0.4, 0.2), (0.2, 0.6, 0.2), (2, 10, 2), (250, 1000, 250), (0.25, 1.0, 0.25), (0.25, 1.0, 0.25), (0.0, 0.4, 0.2), (0.5, 2.0, 0.5)]
 res = []
@@ -104,9 +105,9 @@ parameters = {
 grid_search = GridSearchCV(
     estimator = estimator,
     param_grid = parameters,
-    scoring = 'roc_auc',
+    scoring = 'balanced_accuracy',
     n_jobs = -1,              # 15 -> -1: Para utilizar todos los disponibles
-    cv = 10,
+    cv = 5,
     verbose = True
 )
 
