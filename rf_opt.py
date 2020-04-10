@@ -95,7 +95,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 100
+iterations = 50
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
@@ -135,7 +135,7 @@ for ite in range(iterations):
     
     # Modelo XGB
     model = xgb.XGBClassifier(learning_rate=0.01, n_estimators=600, objective='multi:softmax', tree_method = 'gpu_hist',
-        deterministic_histogram = False, eval_metric = "mlogloss")
+        deterministic_histogram = False, eval_metric = "mlogloss", verbose = 2)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     if debug_mode:
