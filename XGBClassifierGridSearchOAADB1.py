@@ -1,9 +1,10 @@
+ # coding=utf-8
 from xgboost import XGBClassifier
 from sklearn.model_selection import GridSearchCV
-import sampling
+#import sampling
 import random
 import numpy as np
-from sampling import tomeklinks, aiiknn
+#from sampling import tomeklinks, aiiknn
 
 # Sección datos
 # Diccionario para codificar los nombres de las clases
@@ -35,7 +36,7 @@ categorical_encoder_catastral = {
 
 # Variable que contendrá las muestras
 data = []
-
+"""
 with open(r'Data\Modelar_UH2020.txt') as read_file:
     # La primera linea del documento es el nombre de las variables, no nos interesa
     read_file.readline()
@@ -60,7 +61,7 @@ print(data.shape)
 pos = len(data[0]) - 1
 X, Y = aiiknn(data[:, :pos], data[:, pos])
 print(X.shape)
-
+"""
 
 
 # Sección Grid Search 
