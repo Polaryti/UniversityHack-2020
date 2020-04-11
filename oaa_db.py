@@ -137,6 +137,8 @@ def informe():
         scores.append((f1_score(y_test_80_20,res,average='macro'), precision_score(y_test_80_20,res,average='micro'), recall_score(y_test_80_20,res,average='micro'), accuracy_score(y_test_80_20,res)))
         results = pd.DataFrame(scores,columns=['f1','precision','recall','accuracy'])
         f.write(results)
+        f.write('----------------------------------------------------------------------------------------\n')
+        f.write(classification_report(y_test_80_20, res))
         f.write('----------------------------------------------------------------------------------------\n\n')
 
 informe()

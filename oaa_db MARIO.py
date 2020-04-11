@@ -12,25 +12,26 @@ import random
 import math
 import datetime
 
-INDEX = 0
-CLASS = 66
+class_pos = 66 # <----- Esto lo ve alguién de ing. del Softw. y le da un micro-infarto 
 
 modelar_df = get_modelar_data()
 
-#Obtener train 80% y test 20% aleatoriamente.
-X_modelar = modelar_df.loc[:, modelar_df.columns != CLASS]
-y_modelar = modelar_df.loc[:, CLASS]
-X_train_random, X_test_random, y_train_random, y_test_random = train_test_split(X_modelar, y_modelar, test_size = 0.2, shuffle=True)
+# Obtener train 80% y test 20% aleatoriamente
+# class_pos == last_pos = True, en teoría
+last_pos = len(modelar_df[0]) - 1
+X_modelar = modelar_df[:, :last_pos]
+y_modelar = modelar_df[:, last_pos]
+X_train_random, X_test_random, y_train_random, y_test_random = train_test_split(X_modelar, y_modelar, test_size = 0.2, shuffle = True)
 
 #X_train_notrandom, X_test_notrandom, y_train_notrandom, y_test_notrandom = train_test_split(X_modelar, y_modelar, test_size=0.2, shuffle=True, stratify=ref)
 
 modelar_train_test_80_20 = dividir_dataset(modelar_df)
 modelar_train_80_20 = modelar_train_test_80_20[0]
 modelar_test_80_20 = modelar_train_test_80_20[1]
-X_train_80_20  = modelar_train_80_20.loc[:, modelar_train_80_20.columns != CLASS]
-y_train_80_20  = modelar_train_80_20.loc[:, CLASS]
-X_test_80_20   = modelar_test_80_20.loc[:, modelar_test_80_20.columns != CLASS]
-y_test_80_20   = modelar_test_80_20.loc[:, CLASS]
+X_train_80_20  = modelar_train_80_20.loc[:, modelar_train_80_20.columns != class_pos]
+y_train_80_20  = modelar_train_80_20.loc[:, class_pos]
+X_test_80_20   = modelar_test_80_20.loc[:, modelar_test_80_20.columns != class_pos]
+y_test_80_20   = modelar_test_80_20.loc[:, class_pos]
 
 #Los datos ya están preprocesados con one-hot vectors.
 #Modelo XGBClassifier
@@ -137,6 +138,8 @@ def informe():
         scores.append((f1_score(y_test_80_20,res,average='macro'), precision_score(y_test_80_20,res,average='micro'), recall_score(y_test_80_20,res,average='micro'), accuracy_score(y_test_80_20,res)))
         results = pd.DataFrame(scores,columns=['f1','precision','recall','accuracy'])
         f.write(results)
+        f.write('----------------------------------------------------------------------------------------\n')
+        f.write(classification_report(y_test_80_20, res))
         f.write('----------------------------------------------------------------------------------------\n\n')
 
 informe()

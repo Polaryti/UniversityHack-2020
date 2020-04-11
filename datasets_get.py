@@ -71,12 +71,13 @@ def get_categories_list():
 def get_categorical_encoder_catastral_onehot():
     return categorical_encoder_catastral_onehot
     
-def get_modelar_data(missing_value=0, one_hot=True):
+def get_modelar_data(missing_value = 0, one_hot = True):
     # Variable que contendrá las muestras
     data_list = []
+    # with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Modelar_UH2020.txt') as read_file:
     with open(r'Data/Modelar_UH2020.txt') as read_file:
         # La primera linea del documento es el nombre de las variables, no nos interesa
-        data_list.append(read_file.readline())
+        labels = np.array(read_file.readline())
         # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
         for line in read_file.readlines():
             # Eliminamos el salto de línea final
@@ -86,38 +87,44 @@ def get_modelar_data(missing_value=0, one_hot=True):
             # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
             line[52] = 2020 - int(line[52])
             if line[53] is '':
-                line[53] = 0
+                line[53] = missing_value
             line[55] = categorical_encoder_class[line[55]]
             # Codificamos CADASTRALQUALITYID y arreglamos la muestra
-            data_list.append(line[1:54] + categorical_encoder_catastral_onehot[line[54]] + [line[55]])
+            if one_hot:
+                data_list.append(line[1:54] + categorical_encoder_catastral_onehot[line[54]] + [line[55]])
+            else:
+                data_list.append(line[1:])
+
     # Finalmente convertimos las muestras preprocesadas a una matriz
     data_list = np.array(data_list)
-    #Convertimos dicha matriz a un dataframe de pandas.
-    modelar_df = pd.DataFrame(data = data_list)
-    return modelar_df
+    # Convertimos dicha matriz a un dataframe de pandas
+    return pd.DataFrame(data = data_list, columns = labels)
 
-def get_estimar_data(missing_value=0, one_hot=True):
+
+def get_estimar_data(missing_value = 0, one_hot = True):
     # Variable que contendrá las muestras a predecir
     data_predict = []
-    with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Modelar_UH2020.txt') as read_file:
-        # La primera línea del documento es el nombre de las variables, no nos interesa
-        read_file.readline()
-        # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral)
+    # with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Estimar_UH2020.txt') as read_file:
+    with open(r'Data/Estimar_UH2020.txt') as read_file:
+        # La primera linea del documento es el nombre de las variables (al ser un Pandas Dataframe hay que añadirla)
+        labels = np.array(read_file.readline())
+        # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valos catastral)
         for line in read_file.readlines():
+            # Eliminamos el salto de línea final
             line = line.replace('\n', '')
+            # Separamos por el elemento delimitador
             line = line.split('|')
-            if line[54] in categorical_encoder_catastral:
-                line[54] = categorical_encoder_catastral[line[54]]
-                if line[54] is 50:
-                    line[53] = missing_value
+            # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
+            line[52] = 2020 - int(line[52])
+            if line[53] is '':
+                line[53] = missing_value
             if one_hot:
                 data_predict.append(line[:54] + categorical_encoder_catastral_onehot[line[54]])
             else:
                 data_predict.append(line)
 
-    # Finalmente convertimos las muestras preprocesadas a una matriz (no numérica, nos interesa el id esta vez)
+    # Finalmente convertimos las muestras preprocesadas a una matriz
     data_predict = np.array(data_predict)
 
-    #Convertimos dicha matriz a un dataframe de pandas.
-    estimar_df = pd.DataFrame(data = data_predict)
-    return estimar_df
+    # Convertimos la matriz a un dataframe de pandas
+    return pd.DataFrame(data = data_predict, columns = labels)
