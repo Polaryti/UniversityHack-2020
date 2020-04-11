@@ -11,11 +11,59 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import seaborn as sns
 import random
-import XGB_RandomForestBasic_bunyol
+from datasets_get import get_modelar_data, get_estimar_data, get_categories_list
 
-categories_list = XGB_RandomForestBasic_bunyol.get_categories_list()
-modelar_df = XGB_RandomForestBasic_bunyol.get_modelar_data()
-estimar_df = XGB_RandomForestBasic_bunyol.get_estimar_data()
+categories_list = get_categories_list()
+# Diccionario para codificar los nombres de las clases
+categorical_encoder_class = {'RESIDENTIAL': 0,
+    'INDUSTRIAL': 1,
+    'PUBLIC': 2,
+    'OFFICE': 3,
+    'OTHER': 4,
+    'RETAIL': 5,
+    'AGRICULTURE': 6
+}
+
+# Diccionario para codificar la variable categorica CADASTRALQUALITYID a un vector one-hot
+categorical_encoder_catastral = {
+    'A': [1, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
+    'B': [0, 1, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
+    'C': [0, 0, 1, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
+    '1': [0, 0, 0, 1, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
+    '2': [0, 0, 0, 0, 1, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
+    '3': [0, 0, 0, 0, 0, 1, 0, 0, 0 ,0 ,0 ,0 ,0],
+    '4': [0, 0, 0, 0, 0, 0, 1, 0, 0 ,0 ,0 ,0 ,0],
+    '5': [0, 0, 0, 0, 0, 0, 0, 1, 0 ,0 ,0 ,0 ,0],
+    '6': [0, 0, 0, 0, 0, 0, 0, 0, 1 ,0 ,0 ,0 ,0],
+    '7': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,1 ,0 ,0 ,0],
+    '8': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,1 ,0 ,0],
+    '9': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,1 ,0],
+    '""': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,1]
+}
+
+# Variable que contendrá las muestras
+data = []
+
+with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Modelar_UH2020.txt') as read_file:
+    # La primera linea del documento es el nombre de las variables, no nos interesa
+    read_file.readline()
+    # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
+    for line in read_file.readlines():
+        # Eliminamos el salto de línea final
+        line = line.replace('\n', '')
+        # Separamos por el elemento delimitador
+        line = line.split('|')
+        # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
+        line[52] = 2020 - int(line[52])
+        if line[53] is '':
+            line[53] = 0
+        line[55] = categorical_encoder_class[line[55]]
+        # Codificamos CADASTRALQUALITYID y arreglamos la muestra
+        data.append(line[1:54] + categorical_encoder_catastral[line[54]] + [line[55]])
+
+random.shuffle(data)
+data = np.array(data).astype('float32')
+modelar_df = pd.DataFrame(data = data)
 
 def hist_decomposition():
     count_df = pd.DataFrame(columns = categories_list)

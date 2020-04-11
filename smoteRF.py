@@ -4,7 +4,6 @@ import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, recall_score
 import random
-import sampling as samp
 
 # Diccionario para codificar los nombres de las clases
 categorical_encoder_class = {'RESIDENTIAL': 0,
