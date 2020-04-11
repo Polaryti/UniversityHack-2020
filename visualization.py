@@ -44,7 +44,8 @@ categorical_encoder_catastral = {
 # Variable que contendrá las muestras
 data = []
 
-with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Modelar_UH2020.txt') as read_file:
+#with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Modelar_UH2020.txt') as read_file:
+with open(r'Data/Modelar_UH2020.txt') as read_file:
     # La primera linea del documento es el nombre de las variables, no nos interesa
     read_file.readline()
     # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)

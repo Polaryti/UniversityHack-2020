@@ -97,15 +97,8 @@ def get_modelar_data(missing_value = 0, one_hot = True):
 
     # Finalmente convertimos las muestras preprocesadas a una matriz
     data_list = np.array(data_list)
-<<<<<<< HEAD
-    #Convertimos dicha matriz a un dataframe de pandas.
-    modelar_df = pd.DataFrame(data = data_list)
-    print(modelar_df.shape)
-    return modelar_df
-=======
     # Convertimos dicha matriz a un dataframe de pandas
     return pd.DataFrame(data = data_list, columns = labels)
->>>>>>> 5cb10d47ce37cc91df7887205eb811e1127b4597
 
 
 def get_estimar_data(missing_value = 0, one_hot = True):
