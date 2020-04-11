@@ -94,6 +94,7 @@ def get_modelar_data(missing_value=0, one_hot=True):
     data_list = np.array(data_list)
     #Convertimos dicha matriz a un dataframe de pandas.
     modelar_df = pd.DataFrame(data = data_list)
+    print(modelar_df.shape)
     return modelar_df
 
 def get_estimar_data(missing_value=0, one_hot=True):
