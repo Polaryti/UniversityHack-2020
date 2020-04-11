@@ -76,7 +76,7 @@ def get_modelar_data(missing_value=0, one_hot=True):
     data_list = []
     with open(r'Data/Modelar_UH2020.txt') as read_file:
         # La primera linea del documento es el nombre de las variables, no nos interesa
-        read_file.readline()
+        data_list.append(read_file.readline())
         # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
         for line in read_file.readlines():
             # Eliminamos el salto de línea final
@@ -91,7 +91,7 @@ def get_modelar_data(missing_value=0, one_hot=True):
             # Codificamos CADASTRALQUALITYID y arreglamos la muestra
             data_list.append(line[1:54] + categorical_encoder_catastral_onehot[line[54]] + [line[55]])
     # Finalmente convertimos las muestras preprocesadas a una matriz
-    data_list = np.array(data_list).astype('float32')
+    data_list = np.array(data_list)
     #Convertimos dicha matriz a un dataframe de pandas.
     modelar_df = pd.DataFrame(data = data_list)
     return modelar_df
