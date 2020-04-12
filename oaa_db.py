@@ -13,39 +13,46 @@ import math
 import datetime
 
 INDEX = 0
-CLASS = 66
+CLASS = 'CLASS'
 
 modelar_df = get_modelar_data()
-print(modelar_df.shape)
+#print(modelar_df.shape)
 #Obtener train 80% y test 20% aleatoriamente.
 X_modelar = modelar_df.loc[:, modelar_df.columns!=CLASS]
 y_modelar = modelar_df.loc[:, CLASS]
+#print('modelar')
+#print(X_modelar.shape, y_modelar.shape)
 X_train_random, X_test_random, y_train_random, y_test_random = train_test_split(X_modelar,y_modelar,test_size = 0.2,shuffle=True)
-print('1')
+#print('1')
 #Obtener train 80% y test 20% NO aleatoriamente.
-modelar_train_test_80_20 = dividir_dataset(modelar_df)
-modelar_train_80_20 = modelar_train_test_80_20[0]
-modelar_test_80_20 = modelar_train_test_80_20[1]
-print('2')
+
+modelar_train_80_20, modelar_test_80_20 = dividir_dataset(modelar_df)
+#print(modelar_train_80_20.shape, modelar_test_80_20.shape)
+#print('2')
 X_train_80_20  = modelar_train_80_20.loc[:, modelar_train_80_20.columns != CLASS]
-print('3')
+#print(X_train_80_20.shape)
+#print('3')
 y_train_80_20  = modelar_train_80_20.loc[:, CLASS]
-print('4')
+#print(y_train_80_20.shape)
+#print('4')
 X_test_80_20   = modelar_test_80_20.loc[:, modelar_test_80_20.columns != CLASS]
-print('5')
+#print(X_test_80_20.shape)
+#print('5')
 y_test_80_20   = modelar_test_80_20.loc[:, CLASS]
-print('6')
+#print(y_test_80_20.shape)
+#print('6')
 
 #Los datos ya están preprocesados con one-hot vectors.
 #Modelo XGBClassifier
 xgbClass = xgb.XGBClassifier()
 
+
 def classifier1(f):
     print('Entra en Clasificador 1')
     #OAA 1º probamos con este
-    ovsr1 = OneVsRestClassifier(xgbClass,n_jobs=3).fit(X_modelar,y_modelar)
-    prediction = ovsr1.predict(X_test_80_20)
+    ovsr1 = OneVsRestClassifier(xgbClass,n_jobs=3).fit(X_train_80_20,y_train_80_20)
     print('Sale de clasificador 1')
+    prediction = ovsr1.predict(X_test_80_20)
 
     scores = []
     scores.append((f1_score(y_test_80_20,prediction,average='macro'), precision_score(y_test_80_20,prediction,average='micro'), recall_score(y_test_80_20,prediction,average='micro'), accuracy_score(y_test_80_20,prediction)))
@@ -131,6 +138,7 @@ def get_pred_final(f, ovsr1, ovsr2, pred1, pred2, thresold1, thresold2):
 def informe():
     #Creamos text file para el informe con el día y la hora 
     filename = str('Resultados/OAA-DB' + str(datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")))
+    print('COMIENZA INFORME')
     f = open(filename, 'w+')
     ovsr1, pred1 = classifier1(f)
     for i in range(2):
@@ -140,9 +148,10 @@ def informe():
         scores = []
         scores.append((f1_score(y_test_80_20,res,average='macro'), precision_score(y_test_80_20,res,average='micro'), recall_score(y_test_80_20,res,average='micro'), accuracy_score(y_test_80_20,res)))
         results = pd.DataFrame(scores,columns=['f1','precision','recall','accuracy'])
+        print(results)
         f.write(results)
         f.write('----------------------------------------------------------------------------------------\n')
         f.write(classification_report(y_test_80_20, res))
         f.write('----------------------------------------------------------------------------------------\n\n')
 
-informe()
+#informe()

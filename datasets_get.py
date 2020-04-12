@@ -77,7 +77,7 @@ def get_modelar_data(missing_value = 0, one_hot = True):
     # with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Modelar_UH2020.txt') as read_file:
     with open(r'Data/Modelar_UH2020.txt') as read_file:
         # La primera linea del documento es el nombre de las variables, no nos interesa
-        labels = np.array(read_file.readline())
+        labels = np.array(read_file.readline().split('|'))
         # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
         for line in read_file.readlines():
             # Eliminamos el salto de línea final
@@ -96,16 +96,11 @@ def get_modelar_data(missing_value = 0, one_hot = True):
                 data_list.append(line[1:])
 
     # Finalmente convertimos las muestras preprocesadas a una matriz
-    data_list = np.array(data_list)
-<<<<<<< HEAD
-    #Convertimos dicha matriz a un dataframe de pandas.
-    modelar_df = pd.DataFrame(data = data_list)
-    print(modelar_df.shape)
-    return modelar_df
-=======
+    data_list = np.array(data_list).astype('float32')
     # Convertimos dicha matriz a un dataframe de pandas
-    return pd.DataFrame(data = data_list, columns = labels)
->>>>>>> 5cb10d47ce37cc91df7887205eb811e1127b4597
+    #df = pd.DataFrame(data = data_list).rename(columns={np.int64(66):'CLASS'})
+    df = pd.DataFrame(data=data_list).rename(columns={66:'CLASS'})
+    return df
 
 
 def get_estimar_data(missing_value = 0, one_hot = True):
