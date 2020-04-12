@@ -29,16 +29,16 @@ X_train_random, X_test_random, y_train_random, y_test_random = train_test_split(
 modelar_train_80_20, modelar_test_80_20 = dividir_dataset(modelar_df)
 #print(modelar_train_80_20.shape, modelar_test_80_20.shape)
 #print('2')
-X_train_80_20  = modelar_train_80_20.loc[:, modelar_train_80_20.columns != CLASS]
+X_train_80_20  = modelar_train_80_20.loc[:, modelar_train_80_20.columns != CLASS].values
 #print(X_train_80_20.shape)
 #print('3')
-y_train_80_20  = modelar_train_80_20.loc[:, CLASS]
+y_train_80_20  = modelar_train_80_20.loc[:, CLASS].values
 #print(y_train_80_20.shape)
 #print('4')
-X_test_80_20   = modelar_test_80_20.loc[:, modelar_test_80_20.columns != CLASS]
+X_test_80_20   = modelar_test_80_20.loc[:, modelar_test_80_20.columns != CLASS].values
 #print(X_test_80_20.shape)
 #print('5')
-y_test_80_20   = modelar_test_80_20.loc[:, CLASS]
+y_test_80_20   = modelar_test_80_20.loc[:, CLASS].values
 #print(y_test_80_20.shape)
 #print('6')
 
@@ -59,9 +59,9 @@ def classifier1(f):
     results = pd.DataFrame(scores,columns=['f1','precision','recall','accuracy'])
 
     f.write('-PRIMER CLASIFICADOR-\n')
-    f.write(results)
+    f.write(str(results))
     f.write('\n\n')
-    return ovsr1, prediction
+    return ovsr1, ovsr1.predict_proba(X_test_80_20)
 
 def data_balancing(method, f):
     #method: 0 SMOTE y ENN, 1 SMOTE y Tomek, 2 SMOTE Y CMTNN
@@ -71,16 +71,16 @@ def data_balancing(method, f):
         #SMOTE y ENN
         f.write('SMOTE + ENN-\n')
         X_s_enn, y_s_enn = smote_enn(X_train_80_20, y_train_80_20)
-        f.write(str('Número de componentes X: ' + X_s_enn.shape[0] + '\n'))
-        f.write(str('Número de componentes y: ' + y_s_enn.shape[0] + '\n'))
+        f.write(str('Número de componentes X: ' + str(X_s_enn.shape[0]) + '\n'))
+        f.write(str('Número de componentes y: ' + str(y_s_enn.shape[0]) + '\n'))
         print('Sale de data balancing')
         return X_s_enn, y_s_enn
     else:
         #SMOTE y Tomek
         f.write('SMOTE + Tomek Links')
         X_s_tomek, y_s_tomek = smote_tomek(X_train_80_20, y_train_80_20)
-        f.write(str('Número de componentes X: ' + X_s_tomek.shape[0] + '\n'))
-        f.write(str('Número de componentes y: ' + y_s_tomek.shape[0] + '\n'))
+        f.write(str('Número de componentes X: ' + str(X_s_tomek.shape[0]) + '\n'))
+        f.write(str('Número de componentes y: ' + str(y_s_tomek.shape[0]) + '\n'))
         print('Sale de data balancing')
         return X_s_tomek, y_s_tomek
 
@@ -97,9 +97,9 @@ def classifier2(f, X_balanced, y_balanced):
     results = pd.DataFrame(scores,columns=['f1','precision','recall','accuracy'])
 
     f.write('-SEGUNDO CLASIFICADOR-\n')
-    f.write(results)
+    f.write(str(results))
     f.write('\n\n')
-    return ovsr2, prediction
+    return ovsr2, ovsr2.predict_proba(X_test_80_20)
     
 
 #Paso final del algoritmo, decisión con thresolds.
@@ -131,7 +131,7 @@ def get_pred_final(f, ovsr1, ovsr2, pred1, pred2, thresold1, thresold2):
             #Cogemos clase que ha obtenido mayor probabilidad EN EL 1º.
             #Es posible el empate?
             else:
-                res.append(probClasses[pred1.index(min(pred1[i, :]))])
+                res.append(probClasses[np.argmax(pred1[i,:])])
     return res
 
 
@@ -148,10 +148,10 @@ def informe():
         scores = []
         scores.append((f1_score(y_test_80_20,res,average='macro'), precision_score(y_test_80_20,res,average='micro'), recall_score(y_test_80_20,res,average='micro'), accuracy_score(y_test_80_20,res)))
         results = pd.DataFrame(scores,columns=['f1','precision','recall','accuracy'])
-        print(results)
-        f.write(results)
+        print(str(results))
+        f.write(str(results))
         f.write('----------------------------------------------------------------------------------------\n')
         f.write(classification_report(y_test_80_20, res))
         f.write('----------------------------------------------------------------------------------------\n\n')
-
-#informe()
+    f.close()
+informe()
