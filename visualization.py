@@ -13,60 +13,9 @@ import seaborn as sns
 import random
 from datasets_get import get_modelar_data, get_estimar_data, get_categories_list
 
-categories_list = get_categories_list()
-# Diccionario para codificar los nombres de las clases
-categorical_encoder_class = {'RESIDENTIAL': 0,
-    'INDUSTRIAL': 1,
-    'PUBLIC': 2,
-    'OFFICE': 3,
-    'OTHER': 4,
-    'RETAIL': 5,
-    'AGRICULTURE': 6
-}
-
-# Diccionario para codificar la variable categorica CADASTRALQUALITYID a un vector one-hot
-categorical_encoder_catastral = {
-    'A': [1, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
-    'B': [0, 1, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
-    'C': [0, 0, 1, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
-    '1': [0, 0, 0, 1, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
-    '2': [0, 0, 0, 0, 1, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
-    '3': [0, 0, 0, 0, 0, 1, 0, 0, 0 ,0 ,0 ,0 ,0],
-    '4': [0, 0, 0, 0, 0, 0, 1, 0, 0 ,0 ,0 ,0 ,0],
-    '5': [0, 0, 0, 0, 0, 0, 0, 1, 0 ,0 ,0 ,0 ,0],
-    '6': [0, 0, 0, 0, 0, 0, 0, 0, 1 ,0 ,0 ,0 ,0],
-    '7': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,1 ,0 ,0 ,0],
-    '8': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,1 ,0 ,0],
-    '9': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,1 ,0],
-    '""': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,1]
-}
-
-# Variable que contendrá las muestras
-data = []
-
-#with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Modelar_UH2020.txt') as read_file:
-with open(r'Data/Modelar_UH2020.txt') as read_file:
-    # La primera linea del documento es el nombre de las variables, no nos interesa
-    read_file.readline()
-    # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
-    for line in read_file.readlines():
-        # Eliminamos el salto de línea final
-        line = line.replace('\n', '')
-        # Separamos por el elemento delimitador
-        line = line.split('|')
-        # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
-        line[52] = 2020 - int(line[52])
-        if line[53] is '':
-            line[53] = 0
-        line[55] = categorical_encoder_class[line[55]]
-        # Codificamos CADASTRALQUALITYID y arreglamos la muestra
-        data.append(line[1:54] + categorical_encoder_catastral[line[54]] + [line[55]])
-
-random.shuffle(data)
-data = np.array(data).astype('float32')
-modelar_df = pd.DataFrame(data = data)
-
 def hist_decomposition():
+    categories_list = get_categories_list()
+    modelar_df = get_modelar_data()
     count_df = pd.DataFrame(columns = categories_list)
     for i in range(len(categories_list)):
         count_df[categories_list[i]] = [pd.DataFrame(modelar_df.loc[modelar_df[54] == i]).shape[0]]
@@ -124,9 +73,9 @@ def pca_3d(X, y, n_components=3, pie_evr=True):
     plt.show()
 
 
-def tsne(X, y, perplexity):
+def tsne(X, y, perplexity, comp):
     for perp in perplexity:
-        tsne = TSNE(n_components=2, verbose=0, perplexity=perp, n_iter=400)
+        tsne = TSNE(n_components=comp, verbose=0, perplexity=perp, n_iter=400)
         features = list(X.columns.values)
         tsne_results = tsne.fit_transform(X[features].values)
         X['tsne-2d-first'] = tsne_results[:,0]
@@ -134,9 +83,9 @@ def tsne(X, y, perplexity):
         print('Perplexity = ',perp)
         plt.figure(figsize=(14,10))
         sns.scatterplot(
-        x="tsne-2d-first", y="tsne-2d-first",
+        x="tsne-2d-first", y="tsne-2d-second",
         hue="y",
-        palette=sns.color_palette("hls", 7),
+        palette=sns.color_palette("hls", 2),
         data=X,
         legend="full",
         alpha=0.3
@@ -155,3 +104,17 @@ def pie_explained_variance_ratio(explained_variance_ratio):
         index += 1
     i*=100
     print('Captura el {} por ciento de la información total'.format(i))
+
+
+def hist_importance():
+    df = pd.read_csv('Importancia de parametros.csv')
+    print(df)
+    df.plot.pie(y=0, figsize=(6,6))
+    """
+    plt.xlabel('Parámetros', fontsize=15)
+    plt.ylabel('Importancia', fontsize=15)
+    plt.xlim([0.0, 67.0])
+    plt.show()
+    """
+    plt.show()
+hist_importance()

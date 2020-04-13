@@ -36,7 +36,7 @@ categorical_encoder_catastral = {
 # Variable que contendrá las muestras
 data = []
 
-with open(r'Data\Modelar_UH2020.txt') as read_file:
+with open(r'Data/Modelar_UH2020.txt') as read_file:
     # La primera linea del documento es el nombre de las variables, no nos interesa
     read_file.readline()
     # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
@@ -72,7 +72,7 @@ for sample in data:
 data_predict = []
 
 # Mismo procesamiento de datos que para el conjunto inicial
-with open(r'Data\Estimar_UH2020.txt') as read_file:
+with open(r'Data/Estimar_UH2020.txt') as read_file:
     # La primera linea del documento es el nombre de las variables, no nos interesa
     read_file.readline()
     # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valos catastral)
@@ -158,6 +158,8 @@ var_inf = pd.DataFrame({
     }).sort_values('Importance', ascending = False)
 
 print(var_inf)
+var_inf.to_csv('Importancia de parametros.csv')
+
 
 # Evaluación de las metricas con unos parametros
 y_pred = grid_search.best_estimator_.predict(X_test, ntree_limit = 1000)
