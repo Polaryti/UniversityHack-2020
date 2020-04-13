@@ -114,26 +114,16 @@ for train_index, test_index in sss.split(X, Y):
     y_train, y_test = Y[train_index], Y[test_index]
 
 # Modelo XGB
-par = {
-    'n_estimators': 1000,
-    'num_class': 7,
-    'eta': 0.01,
-    'max_depth': 6,
-    'subsample': 0.75,
-    'colsample_bytree': 1,
-    'gamma': 1,
-    'average': 'macro'
-}
-
 model = xgb.XGBClassifier(
     objective = 'multi:softmax',
     num_class =  7,
+    eval_metric = 'merror',
 )
 
 parameters = {
-    'max_depth': range(2, 10, 1),
-    'n_estimators': range(60, 220, 40),
-    'learning_rate': [0.1, 0.01, 0.05],
+    'max_depth': [4, 6, 8, 10],
+    'n_estimators': [50, 100, 150, 200],
+    'eta': [0.15, 0.1, 0.05],
 }
 
 grid_search = GridSearchCV(
@@ -141,14 +131,13 @@ grid_search = GridSearchCV(
     param_grid = parameters,
     scoring = 'f1_macro',
     n_jobs = -1,
-    cv = 10,
-    verbose=True,
+    cv = 6,
+    verbose = True,
 )
 
 grid_search.fit(X, Y)
 
-print(grid_search.cv_results_)
-# model.fit(X_train, y_train, eval_metric = 'mlogloss')
+print(grid_search.best_params_)
 
 # Evaluación de las variables con unos parametros
 columns = 'X|Y|Q_R_4_0_0|Q_R_4_0_1|Q_R_4_0_2|Q_R_4_0_3|Q_R_4_0_4|Q_R_4_0_5|Q_R_4_0_6|Q_R_4_0_7|Q_R_4_0_8|Q_R_4_0_9|Q_R_4_1_0|Q_G_3_0_0|Q_G_3_0_1|Q_G_3_0_2|Q_G_3_0_3|Q_G_3_0_4|Q_G_3_0_5|Q_G_3_0_6|Q_G_3_0_7|Q_G_3_0_8|Q_G_3_0_9|Q_G_3_1_0|Q_B_2_0_0|Q_B_2_0_1|Q_B_2_0_2|Q_B_2_0_3|Q_B_2_0_4|Q_B_2_0_5|Q_B_2_0_6|Q_B_2_0_7|Q_B_2_0_8|Q_B_2_0_9|Q_B_2_1_0|Q_NIR_8_0_0|Q_NIR_8_0_1|Q_NIR_8_0_2|Q_NIR_8_0_3|Q_NIR_8_0_4|Q_NIR_8_0_5|Q_NIR_8_0_6|Q_NIR_8_0_7|Q_NIR_8_0_8|Q_NIR_8_0_9|Q_NIR_8_1_0|AREA|GEOM_R1|GEOM_R2|GEOM_R3|GEOM_R4|CONTRUCTIONYEAR|MAXBUILDINGFLOOR|CADASTRALQUALITYID_00|CADASTRALQUALITYID_01|CADASTRALQUALITYID_02|CADASTRALQUALITYID_03|CADASTRALQUALITYID_04|CADASTRALQUALITYID_05|CADASTRALQUALITYID_06|CADASTRALQUALITYID_07|CADASTRALQUALITYID_08|CADASTRALQUALITYID_09|CADASTRALQUALITYID_10|CADASTRALQUALITYID_11|CADASTRALQUALITYID_12'.split('|')
@@ -162,11 +151,9 @@ var_inf.to_csv('Importancia de parametros.csv')
 
 
 # Evaluación de las metricas con unos parametros
-y_pred = grid_search.best_estimator_.predict(X_test, ntree_limit = 1000)
-res = grid_search.best_estimator_
+y_pred = grid_search.best_estimator_.predict(X_test)
 
 print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
-# print(f1_score(y_test, y_pred, average='micro'))
 
 
 # RESULTADO: {'learning_rate': 0.01, 'max_depth': 2, 'n_estimators': 60}
