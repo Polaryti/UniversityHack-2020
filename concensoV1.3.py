@@ -125,10 +125,12 @@ sss = StratifiedShuffleSplit(
 )
 
 
-under = RandomOverSampler()
+over = RandomOverSampler()
 print(X.shape)
-X, Y = under.fit_resample(X = X, y = Y)
+X, Y = over.fit_resample(X = X, y = Y)
 print(X.shape)
+
+
 
 for ite in range(iterations):
 
