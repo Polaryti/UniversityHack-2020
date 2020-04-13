@@ -4,10 +4,11 @@ import numpy as np
 import xgboost as xgb
 from sklearn.metrics import recall_score,accuracy_score,confusion_matrix, f1_score, precision_score, classification_report
 from sklearn.model_selection import train_test_split
-from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier
+from sklearn.multiclass import OneVsRestClassifier, OneVsOneClassifier  
 from datasets_get import get_modelar_data
 from not_random_test_generator import dividir_dataset
-from sampling import smote_enn, smote_tomek
+from sampling import smote_enn, smote_tomek, near_miss, condensed_nearest_neighbour, edited_nearest_neighbour, random_over_sampler
+from sklearn.utils.class_weight import compute_class_weight, compute_sample_weight
 import random
 import math
 import datetime
@@ -16,23 +17,32 @@ INDEX = 0
 CLASS = 'CLASS'
 
 modelar_df = get_modelar_data()
+
 #print(modelar_df.shape)
 #Obtener train 80% y test 20% aleatoriamente.
-X_modelar = modelar_df.loc[:, modelar_df.columns!=CLASS]
-y_modelar = modelar_df.loc[:, CLASS]
+X_modelar = modelar_df.loc[:, modelar_df.columns!=CLASS].values
+
+y_modelar = modelar_df.loc[:, CLASS].values
 #print('modelar')
 #print(X_modelar.shape, y_modelar.shape)
-X_train_random, X_test_random, y_train_random, y_test_random = train_test_split(X_modelar,y_modelar,test_size = 0.2,shuffle=True)
+#X_train_random, X_test_random, y_train_random, y_test_random = train_test_split(X_modelar,y_modelar,test_size = 0.2,shuffle=True)
 #print('1')
 #Obtener train 80% y test 20% NO aleatoriamente.
+classes = np.unique(y_modelar)
+cw = compute_class_weight(class_weight='balanced', classes=classes, y=y_modelar)
+
 
 modelar_train_80_20, modelar_test_80_20 = dividir_dataset(modelar_df)
+
 #print(modelar_train_80_20.shape, modelar_test_80_20.shape)
 #print('2')
 X_train_80_20  = modelar_train_80_20.loc[:, modelar_train_80_20.columns != CLASS].values
 #print(X_train_80_20.shape)
 #print('3')
+
 y_train_80_20  = modelar_train_80_20.loc[:, CLASS].values
+
+
 #print(y_train_80_20.shape)
 #print('4')
 X_test_80_20   = modelar_test_80_20.loc[:, modelar_test_80_20.columns != CLASS].values
@@ -44,13 +54,13 @@ y_test_80_20   = modelar_test_80_20.loc[:, CLASS].values
 
 #Los datos ya están preprocesados con one-hot vectors.
 #Modelo XGBClassifier
+#xgbClass = xgb.XGBClassifier(learning_rate=0.01, max_depth=2, n_estimators=60, objective='multi:softmax', num_class=7)
 xgbClass = xgb.XGBClassifier()
-
 
 def classifier1(f):
     print('Entra en Clasificador 1')
     #OAA 1º probamos con este
-    ovsr1 = OneVsRestClassifier(xgbClass,n_jobs=3).fit(X_train_80_20,y_train_80_20)
+    ovsr1 = OneVsRestClassifier(xgbClass,n_jobs=-1).fit(X_train_80_20,y_train_80_20)
     print('Sale de clasificador 1')
     prediction = ovsr1.predict(X_test_80_20)
 
@@ -63,6 +73,7 @@ def classifier1(f):
     f.write('\n\n')
     return ovsr1, ovsr1.predict_proba(X_test_80_20)
 
+
 def data_balancing(method, f):
     #method: 0 SMOTE y ENN, 1 SMOTE y Tomek, 2 SMOTE Y CMTNN
     print('Entra en data balancing')
@@ -70,14 +81,15 @@ def data_balancing(method, f):
     if method == 0:
         #SMOTE y ENN
         f.write('SMOTE + ENN-\n')
-        X_s_enn, y_s_enn = smote_enn(X_train_80_20, y_train_80_20)
+        X_s_enn, y_s_enn = random_over_sampler(X_train_80_20, y_train_80_20)
+        X_s_enn, y_s_enn = edited_nearest_neighbour(X_s_enn, y_s_enn)
         f.write(str('Número de componentes X: ' + str(X_s_enn.shape[0]) + '\n'))
         f.write(str('Número de componentes y: ' + str(y_s_enn.shape[0]) + '\n'))
         print('Sale de data balancing')
         return X_s_enn, y_s_enn
     else:
         #SMOTE y Tomek
-        f.write('SMOTE + Tomek Links')
+        f.write('SMOTE + Tomek Links\n')
         X_s_tomek, y_s_tomek = smote_tomek(X_train_80_20, y_train_80_20)
         f.write(str('Número de componentes X: ' + str(X_s_tomek.shape[0]) + '\n'))
         f.write(str('Número de componentes y: ' + str(y_s_tomek.shape[0]) + '\n'))
@@ -88,7 +100,7 @@ def data_balancing(method, f):
 def classifier2(f, X_balanced, y_balanced):
     #Entrenamiento 2º clasificador para cada técnica balanceo de datos.
     print('entra 2º clasificador')
-    ovsr2 = OneVsRestClassifier(xgbClass, n_jobs=4).fit(X_balanced, y_balanced)
+    ovsr2 = OneVsRestClassifier(xgbClass, n_jobs=-1).fit(X_balanced, y_balanced)
     print('sale 2º clasificador')
     prediction = ovsr2.predict(X_test_80_20)
 
@@ -139,19 +151,21 @@ def informe():
     #Creamos text file para el informe con el día y la hora 
     filename = str('Resultados/OAA-DB' + str(datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")))
     print('COMIENZA INFORME')
-    f = open(filename, 'w+')
-    ovsr1, pred1 = classifier1(f)
-    for i in range(2):
-        X_balanced, y_balanced = data_balancing(i, f)
-        ovsr2, pred2 = classifier2(f, X_balanced, y_balanced)
-        res = get_pred_final(f, ovsr1, ovsr2, pred1, pred2, 50, 50)
-        scores = []
-        scores.append((f1_score(y_test_80_20,res,average='macro'), precision_score(y_test_80_20,res,average='micro'), recall_score(y_test_80_20,res,average='micro'), accuracy_score(y_test_80_20,res)))
-        results = pd.DataFrame(scores,columns=['f1','precision','recall','accuracy'])
-        print(str(results))
-        f.write(str(results))
-        f.write('----------------------------------------------------------------------------------------\n')
-        f.write(classification_report(y_test_80_20, res))
-        f.write('----------------------------------------------------------------------------------------\n\n')
-    f.close()
+    thresolds = [(10,50), (20, 50), (30,50), (40, 50), (50, 50), (60, 50), (70, 50), (10,40)]
+    with open(filename, 'w+') as f:
+        ovsr1, pred1 = classifier1(f)
+        for i in range(2):
+            X_balanced, y_balanced = data_balancing(i, f)
+            for par in thresolds:
+                ovsr2, pred2 = classifier2(f, X_balanced, y_balanced)
+                res = get_pred_final(f, ovsr1, ovsr2, pred1, pred2, par[0], par[1])
+                scores = []
+                scores.append((f1_score(y_test_80_20,res,average='macro'), precision_score(y_test_80_20,res,average='micro'), recall_score(y_test_80_20,res,average='micro'), accuracy_score(y_test_80_20,res)))
+                results = pd.DataFrame(scores,columns=['f1','precision','recall','accuracy'])
+                print(str(results))
+                f.write(str(results))
+                f.write('----------------------------------------------------------------------------------------\n')
+                f.write(classification_report(y_test_80_20, res))
+                print(str(classification_report(y_test_80_20, res)))
+                f.write('----------------------------------------------------------------------------------------\n\n')
 informe()

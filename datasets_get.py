@@ -93,6 +93,8 @@ def get_modelar_data(missing_value = 0, one_hot = True):
             if one_hot:
                 data_list.append(line[1:54] + categorical_encoder_catastral_onehot[line[54]] + [line[55]])
             else:
+                if line[54] in categorical_encoder_catastral:
+                    line[54] = categorical_encoder_catastral[line[54]]
                 data_list.append(line[1:])
 
     # Finalmente convertimos las muestras preprocesadas a una matriz
@@ -100,8 +102,8 @@ def get_modelar_data(missing_value = 0, one_hot = True):
     # Convertimos dicha matriz a un dataframe de pandas
     #df = pd.DataFrame(data = data_list).rename(columns={np.int64(66):'CLASS'})
     df = pd.DataFrame(data=data_list).rename(columns={66:'CLASS'})
+    df.to_csv('onehot.csv')
     return df
-
 
 def get_estimar_data(missing_value = 0, one_hot = True):
     # Variable que contendrá las muestras a predecir
