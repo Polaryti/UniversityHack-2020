@@ -10,10 +10,6 @@ import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
 import random
-import imblearn.under_sampling
-from imblearn.under_sampling import OneSidedSelection
-from imblearn.over_sampling import RandomOverSampler
-
 
 # Diccionario para codificar los nombres de las clases
 categorical_encoder_class = {'RESIDENTIAL': 0,
@@ -77,6 +73,10 @@ for sample in data:
     data_per_class[int(sample[len(sample) - 1])].append(sample)
 
 
+
+# Variable que contendrá los datos procesados
+data_proc = []
+
 # Variable que contendrá las muestras a predecir
 data_predict = []
 
@@ -104,7 +104,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 1
+iterations = 5
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
@@ -113,53 +113,60 @@ predictions = {}
 debug_mode = True
 
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
-test_avg = 0.1
+test_avg = 0.2
 
-# Técnica de under-sampling
-last_position = len(data[0]) - 1
-X, Y = (data[:, :last_position], data[:, last_position])
-
-sss = StratifiedShuffleSplit(
-    n_splits = 1,       # Solo una partición
-    test_size = 0.2,    # Repartición 80/20 
-)
-
-
-over = RandomOverSampler()
-print(X.shape)
-X, Y = over.fit_resample(X = X, y = Y)
-print(X.shape)
-
-
+sum_avg = 0
 
 for ite in range(iterations):
+    data_proc = []
+    # Muestras de la clase RESIDENTIAL
+    random.shuffle(data_per_class[0])
+    data_proc += data_per_class[0][:5250]
 
-    # Mostramos el porcentaje de entrenamiento
-    print('Entrenamiento completo al {}%'.format(ite/iterations * 100))
+    # Muestras de las otras clases
+    for i in range(6):
+        data_proc += data_per_class[i + 1]
+        
+    # Volvemos a convertir los datos una vez procesados a una matriz
+    data_proc = np.array(data_proc)
 
-    sss = StratifiedShuffleSplit(
-        n_splits = 1,       # Solo una partición
-        test_size = 0.2,    # Repartición 80/20 
-    )
-    
-    # La función es un iterador (debemos iterar, aunque sea solo una vez)
+    # Obtenemos una separación del conjunto de train y test equilibrado (respecto a porcentaje de cada clase)
+    pos = len(data_proc[0]) - 1
+    X, Y = (data_proc[:, :pos], data_proc[:, pos])
+
+    sss = StratifiedShuffleSplit(n_splits = 1, test_size = test_avg)
+
     for train_index, test_index in sss.split(X, Y):
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = Y[train_index], Y[test_index]
+
+
+    # Mostramos el porcentaje de entrenamiento
+    print('Entrenamiento completo al {}%'.format(ite/iterations * 100))
     
     # Modelo XGB
     model = xgb.XGBClassifier(
-        learning_rate = 0.1, 
-        n_estimators = 400,
+        # General parameters
+        
+        # Tree Booster parameters
+        eta = 0.15,
+        n_estimators = 200,
+        max_depth = 10,
+        # Learning task parameters
         objective = 'multi:softmax',
-        num_class = 7, 
+        num_class =  7,
+        eval_metric = 'merror',
     )
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     if debug_mode:
         #print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
-        print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
-        print(f1_score(y_test, y_pred, average='macro'))
+        #print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
+        print('XGBoost ({})'.format(ite))
+        print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
+        print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
+        print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
+        sum_avg += f1_score(y_test, y_pred, average = 'macro')
     
     predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
     for i in range(len(data_predict)):
@@ -177,16 +184,21 @@ for ite in range(iterations):
     y_pred = model.predict(X_test)
     if debug_mode:
         # print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
-        print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
-        print(f1_score(y_test, y_pred, average='macro'))
+        # print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
+        print('RF ({})'.format(ite))
+        print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
+        print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
+        print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
+        sum_avg += f1_score(y_test, y_pred, average = 'macro')
     
+    print('\n')
     predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
     for i in range(len(data_predict)):
         if (data_predict[i, 0] not in predictions):
             predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
         else:
             predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
-print('Entrenamiento completo')
+print('Entrenamiento completo {}'.format(sum_avg / (iterations * 2)))
 
 # Diccionario para decodificar el nombre de las clases
 categorical_decoder_class = {0: 'RESIDENTIAL',
@@ -200,7 +212,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Minsait_Universitat Politècnica de València_Astralaria_OPT.txt', 'w') as write_file:
+with open(r'Resultados/Minsait_Universitat Politècnica de València_Astralaria_OPT.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
