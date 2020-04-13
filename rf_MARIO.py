@@ -72,7 +72,7 @@ data_proc = []
 
 # Muestras de la clase RESIDENTIAL
 random.shuffle(data_per_class[0])
-data_proc += data_per_class[0][:5000]
+data_proc += data_per_class[0][:5250]
 
 # Muestras de las otras clases
 for i in range(6):
@@ -86,19 +86,20 @@ pos = len(data_proc[0]) - 1
 X, Y = (data_proc[:, :pos], data_proc[:, pos])
 
 
-# Modelo XGB
+# Modelo RF
 model = RandomForestClassifier(
     criterion = 'entropy',
     n_jobs = -1,
-
+    max_features = None,
+    n_estimators = 400,
+    max_depth = 50,
+    min_samples_split = 3,
+    min_samples_leaf = 1,
 )
 
 parameters = {
-    'n_estimators': [100, 200, 300],
-    'max_depth': [6, 8, 10],
     'min_samples_split': [2, 3, 4],
     'min_samples_leaf': [1, 2, 3],
-    'max_features': ['sqrt', 'log2', None],
 }
 
 grid_search = GridSearchCV(
@@ -106,7 +107,7 @@ grid_search = GridSearchCV(
     param_grid = parameters,
     scoring = 'f1_macro',
     n_jobs = -1,
-    cv = 6,
+    cv = 4,
     verbose = True,
 )
 
