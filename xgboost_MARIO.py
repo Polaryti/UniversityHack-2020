@@ -118,12 +118,13 @@ model = xgb.XGBClassifier(
     objective = 'multi:softmax',
     num_class =  7,
     eval_metric = 'merror',
+    eta = 0.15,
+    max_depth = 10,
+    n_estimators = 200,
 )
 
 parameters = {
-    'max_depth': [4, 6, 8, 10],
-    'n_estimators': [50, 100, 150, 200],
-    'eta': [0.15, 0.1, 0.05],
+    'tree_method': ['exact', 'approx', 'hist', 'gpu_hist']
 }
 
 grid_search = GridSearchCV(
@@ -131,7 +132,7 @@ grid_search = GridSearchCV(
     param_grid = parameters,
     scoring = 'f1_macro',
     n_jobs = -1,
-    cv = 6,
+    cv = 4,
     verbose = True,
 )
 
@@ -147,11 +148,3 @@ var_inf = pd.DataFrame({
     }).sort_values('Importance', ascending = False)
 
 print(var_inf)
-
-# Evaluación de las metricas con unos parametros
-y_pred = grid_search.best_estimator_.predict(X_test)
-
-print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
-
-
-# RESULTADO: {'learning_rate': 0.01, 'max_depth': 2, 'n_estimators': 60}

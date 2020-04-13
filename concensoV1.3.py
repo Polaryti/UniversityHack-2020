@@ -150,8 +150,9 @@ for ite in range(iterations):
         
         # Tree Booster parameters
         eta = 0.15,
-        n_estimators = 200,
         max_depth = 10,
+        n_estimators = 200,
+        tree_method = 'exact',
         # Learning task parameters
         objective = 'multi:softmax',
         num_class =  7,
