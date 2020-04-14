@@ -86,7 +86,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 8
+iterations = 10
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
@@ -175,7 +175,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Minsait_Universitat Politècnica de València_Astralariakkkkkkk.txt', 'w') as write_file:
+with open(r'Resultados/Minsait_Universitat Politècnica de València_Astralaria0.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
