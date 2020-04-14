@@ -1,0 +1,12 @@
+-PRIMER CLASIFICADOR-
+         f1  precision    recall  accuracy
+0  0.548174   0.655693  0.655693  0.655693
+
+-BALANCEO DE DATOS, técnica: ROS + ENN-
+Número de componentes X: 21460
+Número de componentes y: 21460
+-SEGUNDO CLASIFICADOR-
+         f1  precision    recall  accuracy
+0  0.531759   0.630827  0.630827  0.630827
+
+PREDICCIÓN FINAL PARA THRESOLD 1: (70, 50) Y THRESOLD 2: (80, 50)
