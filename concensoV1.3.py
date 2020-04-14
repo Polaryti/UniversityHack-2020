@@ -121,7 +121,7 @@ for ite in range(iterations):
     data_proc = []
     # Muestras de la clase RESIDENTIAL
     random.shuffle(data_per_class[0])
-    data_proc += data_per_class[0][:5250]
+    data_proc += data_per_class[0][:5000]
 
     # Muestras de las otras clases
     for i in range(6):
