@@ -11,6 +11,7 @@ import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
 import random
+<<<<<<< HEAD
 from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average, reduce_colors
 
 print('Comienzo')
@@ -33,16 +34,33 @@ print(X_estimar.shape)
 X_modelar = np.array(X_modelar)
 X_modelar = X_modelar[1:, :] # Quitamos el nombre de las variables
 print(X_modelar.shape)
+=======
+from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average
+from feature_engineering import coordinates_fe
 
+# print('Comienzo')
+# X_modelar = reduce_geometry_average(getX(get_modelar_data()))
+# print('Geo1')
+# X_estimar = reduce_geometry_average(get_estimar_data())
+# print('Geo2')
+X_modelar, X_estimar = coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
+print('FE')
+Y_modelar = getY(get_modelar_data()).values
+
+X_estimar = X_estimar.values
+>>>>>>> 9a275d5f090571982501fac59effca77ab75c6a5
+
+X_modelar = X_modelar.values
 
 # Variable que contendrá las muestras separadas por clase
 data_per_class = []
 
 # Añadimos una lista vacía por clase
+algo_aux = []
 for _ in range(7):         
     data_per_class.append([])
 # Añadimos a la lista de cada clase las muestras de esta
-for i in range(len(X_modelar) + 1):
+for i in range(len(X_modelar)):
     data_per_class[int(Y_modelar[i])].append(X_modelar[i] + [Y_modelar[i]])
 
 
@@ -51,7 +69,6 @@ data_proc = []
 
 # Variable que contendrá las muestras a predecir
 data_predict = []
-
 
 # Variable que contendra las predicciones globales de cada muestra
 predictions = {}
