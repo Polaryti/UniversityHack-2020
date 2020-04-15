@@ -26,10 +26,6 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
     X_modelar.drop([0,1,2],inplace=True,axis=1)
     X_modelar = reduce_colors(X_modelar)
 
-    print(list(X_modelar.columns.values))
-    print(list(X_estimar.columns.values))
-    print(list(y_modelar.columns.values))
-
     classifier = xgb.XGBClassifier()
     ovsr = OneVsRestClassifier(classifier,n_jobs=-1).fit(X_modelar.values,y_modelar.values)
     pred_estimar = ovsr.predict_proba(X_estimar.values)
@@ -70,8 +66,6 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
     X_estimar_fe = pd.concat([X_estimar, context[X_modelar.shape[0]:].reindex(X_estimar.index)], axis = 1, sort = False)
 
     return X_modelar_fe, X_estimar_fe
-    
-
 
 
 coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
