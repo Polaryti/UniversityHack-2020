@@ -26,6 +26,9 @@ Y_modelar = Y_modelar[1:, :]
 X_estimar = np.array(X_estimar)
 X_estimar = X_estimar[1:, :] # Quitamos el nombre de las variables
 
+X_modelar = np.array(X_modelar)
+X_modelar = X_modelar[1:, :] # Quitamos el nombre de las variables
+
 
 # Variable que contendrá las muestras separadas por clase
 data_per_class = []
@@ -34,7 +37,7 @@ data_per_class = []
 for _ in range(7):         
     data_per_class.append([])
 # Añadimos a la lista de cada clase las muestras de esta
-for i in range(len(X_modelar + 1)):
+for i in range(len(X_modelar) + 1):
     data_per_class[int(Y_modelar[i])].append(X_modelar[i] + [Y_modelar[i]])
 
 
