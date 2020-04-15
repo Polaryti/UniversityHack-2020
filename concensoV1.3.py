@@ -104,7 +104,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 10
+iterations = 100
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
@@ -113,7 +113,7 @@ predictions = {}
 debug_mode = True
 
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
-test_avg = 0.2
+test_avg = 0.06
 
 sum_avg = 0
 
@@ -121,7 +121,7 @@ for ite in range(iterations):
     data_proc = []
     # Muestras de la clase RESIDENTIAL
     random.shuffle(data_per_class[0])
-    data_proc += data_per_class[0][:5000]
+    data_proc += data_per_class[0][:5250]
 
     # Muestras de las otras clases
     for i in range(6):
@@ -150,7 +150,7 @@ for ite in range(iterations):
         # Tree Booster parameters
         eta = 0.15,
         max_depth = 10,
-        n_estimators = 200,
+        n_estimators = 240,
         tree_method = 'exact',
         # Learning task parameters
         objective = 'multi:softmax',
@@ -217,7 +217,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Resultados/Minsait_Universitat Politècnica de València_Astralaria3.txt', 'w') as write_file:
+with open(r'Resultados/Minsait_Universitat Politècnica de València_AstralariaG.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
