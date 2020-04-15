@@ -145,6 +145,8 @@ def get_modelar_data_ids(missing_value = 0, one_hot = True):
 
 
 def getX(modelar_df):
+    # aux = modelar_df.loc[:, modelar_df.columns!=CLASS]
+    # return aux.loc[:, modelar_df.columns!='ID']
     return modelar_df.loc[:, modelar_df.columns!=CLASS]
 
 
