@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, recall_score
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
 import random
 
 # Diccionario para codificar los nombres de las clases
@@ -97,6 +97,8 @@ debug_mode = True
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
 test_avg = 0.1
 
+sum_avg = 0
+
 for ite in range(iterations):
     data_proc = []
     # Muestras de la clase RESIDENTIAL
@@ -118,15 +120,18 @@ for ite in range(iterations):
     
     # Modelo XGB
     model = xgb.XGBClassifier(max_depth=None, learning_rate=0.1, n_estimators=400, verbosity=None, objective=None, 
-        booster=None, tree_method=None, n_jobs=-1, gamma=None, min_child_weight=None, max_delta_step=None, 
+        booster=None, tree_method=None, gamma=None, min_child_weight=None, max_delta_step=None, 
         subsample=None, colsample_bytree=None, colsample_bylevel=None, colsample_bynode=None, reg_alpha=None, 
         reg_lambda=None, scale_pos_weight=None, base_score=None, random_state=None)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     if debug_mode:
         #print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
-        print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
-        print(recall_score(y_test, y_pred, average='macro'))
+        print('XGBoost ({})'.format(ite))
+        print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
+        print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
+        print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
+        sum_avg += f1_score(y_test, y_pred, average = 'macro')
     
     predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
     for i in range(len(data_predict)):
@@ -144,8 +149,11 @@ for ite in range(iterations):
     y_pred = model.predict(X_test)
     if debug_mode:
         # print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
-        print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
-        print(recall_score(y_test, y_pred, average='macro'))
+        print('RF ({})'.format(ite))
+        print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
+        print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
+        print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
+        sum_avg += f1_score(y_test, y_pred, average = 'macro')
     
     predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
     for i in range(len(data_predict)):
@@ -153,7 +161,7 @@ for ite in range(iterations):
             predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
         else:
             predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
-print('Entrenamiento completo')
+print('Entrenamiento completo {}'.format(sum_avg / (iterations * 2)))
 
 # Diccionario para decodificar el nombre de las clases
 categorical_decoder_class = {0: 'RESIDENTIAL',
@@ -167,7 +175,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Minsait_Universitat Politècnica de València_Astralaria.txt', 'w') as write_file:
+with open(r'Minsait_Universitat Politècnica de València_Astralari0.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))

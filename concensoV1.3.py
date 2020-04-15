@@ -104,7 +104,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 5
+iterations = 10
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
@@ -121,7 +121,7 @@ for ite in range(iterations):
     data_proc = []
     # Muestras de la clase RESIDENTIAL
     random.shuffle(data_per_class[0])
-    data_proc += data_per_class[0][:5250]
+    data_proc += data_per_class[0][:5000]
 
     # Muestras de las otras clases
     for i in range(6):
@@ -147,11 +147,11 @@ for ite in range(iterations):
     # Modelo XGB
     model = xgb.XGBClassifier(
         # General parameters
-        
         # Tree Booster parameters
         eta = 0.15,
-        n_estimators = 200,
         max_depth = 10,
+        n_estimators = 200,
+        tree_method = 'exact',
         # Learning task parameters
         objective = 'multi:softmax',
         num_class =  7,
@@ -176,10 +176,15 @@ for ite in range(iterations):
             predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
         
     # Modelo RandomForest
-    model = RandomForestClassifier(n_estimators=400, criterion='entropy', max_depth=60, min_samples_split=5, 
-        min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='log2', max_leaf_nodes=None, 
-        min_impurity_decrease=0.0, min_impurity_split=None, bootstrap=True, oob_score=False, n_jobs=-1, 
-        random_state=None, verbose=0, warm_start=False, class_weight=None, ccp_alpha=0.0, max_samples=None)
+    model = RandomForestClassifier(
+        criterion = 'entropy',
+        n_jobs = -1,
+        max_features = None,
+        n_estimators = 400,
+        max_depth = 50,
+        min_samples_split = 3,
+        min_samples_leaf = 1,
+    )
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
     if debug_mode:
@@ -212,7 +217,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Resultados/Minsait_Universitat Politècnica de València_Astralaria_OPT.txt', 'w') as write_file:
+with open(r'Resultados/Minsait_Universitat Politècnica de València_Astralaria3.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))

@@ -139,7 +139,7 @@ def get_modelar_data_ids(missing_value = 0, one_hot = True):
     a = np.delete(a, 0, axis=1)
     a = a.astype('float32')
     dfids = pd.DataFrame(data=ids)
-    dfa = pd.DataFrame(data=a)
+    dfa = pd.DataFrame(data=a).rename(columns={66:'CLASS'})
     dfa[0] = dfids
     return dfa
 
@@ -152,11 +152,10 @@ def getY(modelar_df):
     return modelar_df.loc[:, modelar_df.columns == CLASS]
 
 
-def reduce_dimension_modelar(num=30):
+def reduce_dimension_modelar(modelar_df, num=30):
     if num > 55:
         print('num no mayor a 55')
     else:
-        modelar_df = get_modelar_data()
         importance_df = pd.read_csv('Importancia de parametros.csv')
         indexes_list = list(importance_df['Index'])
         indexes_list[::-1]
@@ -177,6 +176,19 @@ def reduce_colors(df):
     indices_start = [4, 5, 6, 8, 9, 10]
     for i in range(len(indices_start)):
         df.drop([indices_start[i], indices_start[i]+11, indices_start[i]+22, indices_start[i]+33],inplace=True,axis=1)
+    return df
+
+
+def reduce_geometry_average(df):
+    avgs = []
+    for i in range(df.shape[0]):
+        avgs.append((df.loc[i, 48] + df.loc[i, 49] + df.loc[i, 50] + df.loc[i, 51]) / 4)
+    del df[48]
+    del df[49]
+    del df[50]
+    del df[51]
+    df['GEOM_AVG'] = avgs
+    
     return df
 
 
@@ -203,8 +215,11 @@ def get_estimar_data(missing_value = 0, one_hot = True):
                 data_predict.append(line)
 
     # Finalmente convertimos las muestras preprocesadas a una matriz
-    data_predict = np.array(data_predict)
-
-    # Convertimos la matriz a un dataframe de pandas
-    df = pd.DataFrame(data = data_predict)
-    return df
+    data_predict = np.array(data_predict)    
+    ids = data_predict[:, 0]
+    data_predict = np.delete(data_predict, 0, axis=1)
+    data_predict = data_predict.astype('float32')
+    dfids = pd.DataFrame(data=ids)
+    dfa = pd.DataFrame(data=data_predict)
+    dfa[0] = dfids
+    return dfa
