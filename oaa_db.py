@@ -12,6 +12,8 @@ from sklearn.utils.class_weight import compute_class_weight, compute_sample_weig
 import random
 import math
 import datetime
+import featuretools as ft 
+
 
 INDEX = 0
 CLASS = 'CLASS'
@@ -29,8 +31,6 @@ y_modelar = modelar_df.loc[:, CLASS].values
 #print('1')
 #Obtener train 80% y test 20% NO aleatoriamente.
 classes = np.unique(y_modelar)
-cw = compute_class_weight(class_weight='balanced', classes=classes, y=y_modelar)
-
 
 modelar_train_80_20, modelar_test_80_20 = dividir_dataset(modelar_df)
 
@@ -80,7 +80,7 @@ def data_balancing(method, f):
     f.write('-BALANCEO DE DATOS, técnica: ')
     if method == 0:
         #SMOTE y ENN
-        f.write('SMOTE + ENN-\n')
+        f.write('ROS + ENN-\n')
         X_s_enn, y_s_enn = random_over_sampler(X_train_80_20, y_train_80_20)
         X_s_enn, y_s_enn = edited_nearest_neighbour(X_s_enn, y_s_enn)
         f.write(str('Número de componentes X: ' + str(X_s_enn.shape[0]) + '\n'))
@@ -122,14 +122,19 @@ def get_pred_final(f, ovsr1, ovsr2, pred1, pred2, thresold1, thresold2):
     obs = X_test_80_20.shape[0]
     probClasses = ovsr1.classes_
     res = []
+    a = 0
+    b = 0
+    c = 0
     for i in range(obs):
         arr1 = []
         for j in range(7):
+            print(pred1[i, j])
             if pred1[i, j] > thresold1:
                 arr1.append(probClasses[j])
         #Si solo hay una clase en la lista, es la que predecimos.
         if len(arr1) == 1:
             res.append(arr1[0])
+            a+=1
         else:
             #Creamos 2ª lista para comprobar el 2º clasificador.
             arr2 = []
@@ -139,11 +144,14 @@ def get_pred_final(f, ovsr1, ovsr2, pred1, pred2, thresold1, thresold2):
             #Repetimos, si solo hay una clase en la lista, es la que predecimos.
             if len(arr2) == 1:
                 res.append(arr2[0])
+                b+=1
             #Paso final, no hay más clasificadores.
             #Cogemos clase que ha obtenido mayor probabilidad EN EL 1º.
             #Es posible el empate?
             else:
                 res.append(probClasses[np.argmax(pred1[i,:])])
+                c += 1
+    f.write(str(a) + ' ' + str(b) + ' ' + str(c) + '\n')
     return res
 
 
@@ -151,7 +159,8 @@ def informe():
     #Creamos text file para el informe con el día y la hora 
     filename = str('Resultados/OAA-DB' + str(datetime.datetime.now().strftime("%I:%M%p on %B %d, %Y")))
     print('COMIENZA INFORME')
-    thresolds = [(10,50), (20, 50), (30,50), (40, 50), (50, 50), (60, 50), (70, 50), (10,40)]
+    #thresolds = [(10,50), (20, 50), (30,50), (40, 50), (50, 50), (60, 50), (70, 50), (10,40)]
+    thresolds = [(70, 50), (80, 50), (20, 60), (20, 80), (30, 70), (50, 50), (60, 60), (70, 70), (90, 90), (30, 50)]
     with open(filename, 'w+') as f:
         ovsr1, pred1 = classifier1(f)
         for i in range(2):
@@ -164,7 +173,7 @@ def informe():
                 results = pd.DataFrame(scores,columns=['f1','precision','recall','accuracy'])
                 print(str(results))
                 f.write(str(results))
-                f.write('----------------------------------------------------------------------------------------\n')
+                f.write('\n----------------------------------------------------------------------------------------\n')
                 f.write(classification_report(y_test_80_20, res))
                 print(str(classification_report(y_test_80_20, res)))
                 f.write('----------------------------------------------------------------------------------------\n\n')
