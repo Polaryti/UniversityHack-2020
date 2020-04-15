@@ -60,15 +60,18 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
             else:
                 indices = np.add(indices, pred_estimar[neigh_indices[0][j]-offset,:])
 
-        cont.append(indices)# Sin softmax
-        #cont.append(softmax(np.array(indices))) #Con softmax
+        #cont.append(indices)# Sin softmax
+        cont.append(softmax(np.array(indices))) #Con softmax
 
     context  = pd.DataFrame(cont,columns=col_names)
+    print(context)
     #context.drop('coords_RESIDENTIAL',axis=1,inplace=True) #PROBAR CON Y SIN
     X_modelar_fe = pd.concat([X_modelar,context[:X_modelar.shape[0]].reindex(X_modelar.index)], axis = 1, sort = False)
     X_estimar_fe = pd.concat([X_estimar, context[X_modelar.shape[0]:].reindex(X_estimar.index)], axis = 1, sort = False)
 
-    return X_modelar_fe, X_estimar_fe
+    print(X_modelar_fe)
+    print(X_estimar_fe)
+    return X_modelar_fe.values, X_estimar_fe.values
 
 
-# coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
+coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())

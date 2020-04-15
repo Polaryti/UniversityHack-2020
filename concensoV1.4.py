@@ -5,29 +5,34 @@ En este modelo se ha realizado:
 - CADASTRALQUALITYID -> Transformar a one-hot
 '''
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
 import random
-from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average
-from feature_engineering import coordinates_fe
+from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average, reduce_colors
 
-# print('Comienzo')
-# X_modelar = reduce_geometry_average(getX(get_modelar_data()))
-# print('Geo1')
-# X_estimar = reduce_geometry_average(get_estimar_data())
-# print('Geo2')
-X_modelar, X_estimar = coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
-print('FE')
+print('Comienzo')
+X_modelar = reduce_geometry_average(getX(get_modelar_data_ids()))
+X_modelar = reduce_colors(X_modelar)
+print('Geo1')
+X_estimar = reduce_geometry_average(get_estimar_data())
+X_estimar = reduce_colors(X_estimar)
+print('Geo2')
+
+
 Y_modelar = np.array(getY(get_modelar_data()))
 Y_modelar = Y_modelar[1:, :]
+print(Y_modelar.shape)
 
 X_estimar = np.array(X_estimar)
 X_estimar = X_estimar[1:, :] # Quitamos el nombre de las variables
+print(X_estimar.shape)
 
 X_modelar = np.array(X_modelar)
 X_modelar = X_modelar[1:, :] # Quitamos el nombre de las variables
+print(X_modelar.shape)
 
 
 # Variable que contendrá las muestras separadas por clase
@@ -113,7 +118,7 @@ for ite in range(iterations):
         print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
         sum_avg += f1_score(y_test, y_pred, average = 'macro')
     
-    predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
+    predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))  
     for i in range(len(data_predict)):
         if (data_predict[i, 0] not in predictions):
             predictions[data_predict[i, 0]] = [int(predictions_aux[i])]

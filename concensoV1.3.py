@@ -5,10 +5,12 @@ En este modelo se ha realizado:
 - CADASTRALQUALITYID -> Transformar a one-hot
 '''
 import numpy as np
+import pandas as pd
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
+from datasets_get import reduce_colors, reduce_geometry_average
 import random
 
 # Diccionario para codificar los nombres de las clases
@@ -99,6 +101,17 @@ with open(r'Data\Estimar_UH2020.txt') as read_file:
 
 # Finalmente convertimos las muestras preprocesadas a una matriz (no númerica, nos interesa el id esta vez)
 data_predict = np.array(data_predict)
+
+#############################################
+df_mod = reduce_colors(pd.DataFrame(data=data))
+df_est = reduce_colors(pd.DataFrame(data=data_predict))
+
+df_mod = reduce_geometry_average(df_mod)
+df_est = reduce_geometry_average(df_est)
+
+df_mod = df_mod.values
+df_est = df_est.values
+##############################################
 
 # Variable que contendra las predicciones globales de cada muestra
 predictions = {}
