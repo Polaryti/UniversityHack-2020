@@ -10,57 +10,22 @@ import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
 import random
+from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average
+from feature_engineering import coordinates_fe
 
-# Diccionario para codificar los nombres de las clases
-categorical_encoder_class = {'RESIDENTIAL': 0,
-    'INDUSTRIAL': 1,
-    'PUBLIC': 2,
-    'OFFICE': 3,
-    'OTHER': 4,
-    'RETAIL': 5,
-    'AGRICULTURE': 6
-}
+# print('Comienzo')
+# X_modelar = reduce_geometry_average(getX(get_modelar_data()))
+# print('Geo1')
+# X_estimar = reduce_geometry_average(get_estimar_data())
+# print('Geo2')
+X_modelar, X_estimar = coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
+print('FE')
+Y_modelar = np.array(getY(get_modelar_data()))
+Y_modelar = Y_modelar[1:, :]
 
-# Diccionario para codificar la variable categorica CADASTRALQUALITYID a un vector one-hot
-categorical_encoder_catastral = {
-    'A': [1, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
-    'B': [0, 1, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
-    'C': [0, 0, 1, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
-    '1': [0, 0, 0, 1, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
-    '2': [0, 0, 0, 0, 1, 0, 0, 0, 0 ,0 ,0 ,0 ,0],
-    '3': [0, 0, 0, 0, 0, 1, 0, 0, 0 ,0 ,0 ,0 ,0],
-    '4': [0, 0, 0, 0, 0, 0, 1, 0, 0 ,0 ,0 ,0 ,0],
-    '5': [0, 0, 0, 0, 0, 0, 0, 1, 0 ,0 ,0 ,0 ,0],
-    '6': [0, 0, 0, 0, 0, 0, 0, 0, 1 ,0 ,0 ,0 ,0],
-    '7': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,1 ,0 ,0 ,0],
-    '8': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,1 ,0 ,0],
-    '9': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,1 ,0],
-    '""': [0, 0, 0, 0, 0, 0, 0, 0, 0 ,0 ,0 ,0 ,1]
-}
+X_estimar = np.array(X_estimar)
+X_estimar = X_estimar[1:, :] # Quitamos el nombre de las variables
 
-# Variable que contendrá las muestras
-data = []
-
-with open(r'Data\Modelar_UH2020.txt') as read_file:
-    # La primera linea del documento es el nombre de las variables, no nos interesa
-    read_file.readline()
-    # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
-    for line in read_file.readlines():
-        # Eliminamos el salto de línea final
-        line = line.replace('\n', '')
-        # Separamos por el elemento delimitador
-        line = line.split('|')
-        # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
-        line[52] = 2020 - int(line[52])
-        if line[53] is '':
-            line[53] = 0
-        line[55] = categorical_encoder_class[line[55]]
-        # Codificamos CADASTRALQUALITYID y arreglamos la muestra
-        data.append(line[1:54] + categorical_encoder_catastral[line[54]] + [line[55]])
-
-
-# Finalmente convertimos las muestras preprocesadas a una matriz
-data = np.array(data).astype('float32')
 
 # Variable que contendrá las muestras separadas por clase
 data_per_class = []
@@ -69,9 +34,8 @@ data_per_class = []
 for _ in range(7):         
     data_per_class.append([])
 # Añadimos a la lista de cada clase las muestras de esta
-for sample in data:
-    data_per_class[int(sample[len(sample) - 1])].append(sample)
-
+for i in range(len(X_modelar + 1)):
+    data_per_class[int(Y_modelar[i])].append(X_modelar[i] + [Y_modelar[i]])
 
 
 # Variable que contendrá los datos procesados
@@ -80,34 +44,12 @@ data_proc = []
 # Variable que contendrá las muestras a predecir
 data_predict = []
 
-# Mismo procesamiento de datos que para el conjunto inicial
-with open(r'Data\Estimar_UH2020.txt') as read_file:
-    # La primera linea del documento es el nombre de las variables, no nos interesa
-    read_file.readline()
-    # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valos catastral)
-    for line in read_file.readlines():
-        # Eliminamos el salto de línea final
-        line = line.replace('\n', '')
-        # Separamos por el elemento delimitador
-        line = line.split('|')
-        # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
-        line[52] = 2020 - int(line[52])
-        if line[53] is '':
-            line[53] = 0
-        # Codificamos CADASTRALQUALITYID y arreglamos la muestra
-        data_predict.append(line[:54] + categorical_encoder_catastral[line[54]])
-
-# Finalmente convertimos las muestras preprocesadas a una matriz (no númerica, nos interesa el id esta vez)
-data_predict = np.array(data_predict)
 
 # Variable que contendra las predicciones globales de cada muestra
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 100
-
-# Variable anterior, inicializada de nuevo
-predictions = {}
+iterations = 20
 
 # Si True, muestra información de cada modelo local tras entrenarlo
 debug_mode = True
@@ -197,12 +139,12 @@ for ite in range(iterations):
         sum_avg += f1_score(y_test, y_pred, average = 'macro')
     
     print('\n')
-    predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
-    for i in range(len(data_predict)):
+    predictions_aux = model.predict(X_estimar[:, 1:].astype('float32'))
+    for i in range(len(X_estimar)):
         if (data_predict[i, 0] not in predictions):
-            predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
+            predictions[X_estimar[i, 0]] = [int(predictions_aux[i])]
         else:
-            predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
+            predictions[X_estimar[i, 0]].append(int(predictions_aux[i]))
 print('Entrenamiento completo {}'.format(sum_avg / (iterations * 2)))
 
 # Diccionario para decodificar el nombre de las clases
@@ -217,7 +159,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Resultados/Minsait_Universitat Politècnica de València_AstralariaG.txt', 'w') as write_file:
+with open(r'Resultados/Minsait_Universitat Politècnica de València_Astralaria_FE.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))

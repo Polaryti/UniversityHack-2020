@@ -71,4 +71,4 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
     return X_modelar_fe, X_estimar_fe
 
 
-coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
+# coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
