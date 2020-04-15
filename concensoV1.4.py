@@ -13,15 +13,17 @@ import random
 from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average
 from feature_engineering import coordinates_fe
 
-print('Comienzo')
-X_modelar = reduce_geometry_average(get_modelar_data())
-print('Geo1')
-X_estimar = reduce_geometry_average(get_estimar_data())
-print('Geo2')
-X_modelar, X_estimar = coordinates_fe(getX(get_modelar_data_ids()), getY(X_modelar), X_estimar)
+# print('Comienzo')
+# X_modelar = reduce_geometry_average(getX(get_modelar_data()))
+# print('Geo1')
+# X_estimar = reduce_geometry_average(get_estimar_data())
+# print('Geo2')
+X_modelar, X_estimar = coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
 print('FE')
-Y_modelar = getY(get_modelar_data())
+Y_modelar = np.array(getY(get_modelar_data()))
+Y_modelar = Y_modelar[1:, :]
 
+X_estimar = np.array(X_estimar)
 X_estimar = X_estimar[1:, :] # Quitamos el nombre de las variables
 
 
