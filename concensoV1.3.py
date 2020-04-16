@@ -126,7 +126,7 @@ predictions = {}
 debug_mode = True
 
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
-test_avg = 0.06
+test_avg = 0.2
 
 accuracy_avg = 0
 precision_avg = 0
@@ -137,7 +137,7 @@ for ite in range(iterations):
     data_proc = []
     # Muestras de la clase RESIDENTIAL
     random.shuffle(data_per_class[0])
-    data_proc += data_per_class[0][:5250]
+    data_proc += data_per_class[0][:6000]
 
     # Muestras de las otras clases
     for i in range(6):
@@ -246,7 +246,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Resultados/Res_Int-FaseII', 'w') as write_file:
+with open(r'Resultados/Res_Int-FaseII-BIS', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
