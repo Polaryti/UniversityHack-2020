@@ -4,7 +4,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, precision_score, recall_score
 import random
 
 # Diccionario para codificar los nombres de las clases
@@ -86,7 +86,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 10
+iterations = 15
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
@@ -95,15 +95,18 @@ predictions = {}
 debug_mode = True
 
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
-test_avg = 0.1
+test_avg = 0.2
 
-sum_avg = 0
+accuracy_avg = 0
+precision_avg = 0
+recall_avg = 0
+f1_avg = 0
 
 for ite in range(iterations):
     data_proc = []
     # Muestras de la clase RESIDENTIAL
     random.shuffle(data_per_class[0])
-    data_proc += data_per_class[0][:5000]
+    data_proc += data_per_class[0][:6000]
 
     # Muestras de las otras clases
     for i in range(6):
@@ -129,9 +132,13 @@ for ite in range(iterations):
         #print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
         print('XGBoost ({})'.format(ite))
         print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
+        print('Precision (macro): {}'.format(precision_score(y_test, y_pred, average = 'macro')))
         print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
         print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
-        sum_avg += f1_score(y_test, y_pred, average = 'macro')
+        accuracy_avg += accuracy_score(y_test, y_pred)
+        precision_avg += precision_score(y_test, y_pred, average = 'macro')
+        recall_avg += recall_score(y_test, y_pred, average = 'macro')
+        f1_avg += f1_score(y_test, y_pred, average = 'macro')
     
     predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
     for i in range(len(data_predict)):
@@ -151,9 +158,13 @@ for ite in range(iterations):
         # print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
         print('RF ({})'.format(ite))
         print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
+        print('Precision (macro): {}'.format(precision_score(y_test, y_pred, average = 'macro')))
         print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
-        print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
-        sum_avg += f1_score(y_test, y_pred, average = 'macro')
+        print('F1 (macro): {}\n'.format(f1_score(y_test, y_pred, average = 'macro')))
+        accuracy_avg += accuracy_score(y_test, y_pred)
+        precision_avg += precision_score(y_test, y_pred, average = 'macro')
+        recall_avg += recall_score(y_test, y_pred, average = 'macro')
+        f1_avg += f1_score(y_test, y_pred, average = 'macro')
     
     predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
     for i in range(len(data_predict)):
@@ -161,7 +172,11 @@ for ite in range(iterations):
             predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
         else:
             predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
-print('Entrenamiento completo {}'.format(sum_avg / (iterations * 2)))
+print('\nEntrenamiento completo\n')
+print('Accuracy: {}'.format(accuracy_avg / (iterations * 2)))
+print('Precision: {}'.format(precision_avg / (iterations * 2)))
+print('Recall: {}'.format(recall_avg / (iterations * 2)))
+print('Accuracy: {}'.format(f1_avg / (iterations * 2)))
 
 # Diccionario para decodificar el nombre de las clases
 categorical_decoder_class = {0: 'RESIDENTIAL',
@@ -175,7 +190,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Minsait_Universitat Politècnica de València_Astralari0.txt', 'w') as write_file:
+with open(r'Resultados\Res_BASE.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
