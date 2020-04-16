@@ -11,11 +11,10 @@ import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
 import random
-<<<<<<< HEAD
 from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average, reduce_colors
 
 print('Comienzo')
-X_modelar = reduce_geometry_average(getX(get_modelar_data_ids()))
+X_modelar = reduce_geometry_average(getX(get_modelar_data()))
 X_modelar = reduce_colors(X_modelar)
 print('Geo1')
 X_estimar = reduce_geometry_average(get_estimar_data())
@@ -34,21 +33,6 @@ print(X_estimar.shape)
 X_modelar = np.array(X_modelar)
 X_modelar = X_modelar[1:, :] # Quitamos el nombre de las variables
 print(X_modelar.shape)
-=======
-from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average
-from feature_engineering import coordinates_fe
-
-# print('Comienzo')
-# X_modelar = reduce_geometry_average(getX(get_modelar_data()))
-# print('Geo1')
-# X_estimar = reduce_geometry_average(get_estimar_data())
-# print('Geo2')
-X_modelar, X_estimar = coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
-print('FE')
-Y_modelar = getY(get_modelar_data()).values
-
-X_estimar = X_estimar.values
->>>>>>> 9a275d5f090571982501fac59effca77ab75c6a5
 
 X_modelar = X_modelar.values
 
