@@ -172,11 +172,12 @@ for ite in range(iterations):
             predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
         else:
             predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
+            
 print('\nEntrenamiento completo\n')
 print('Accuracy: {}'.format(accuracy_avg / (iterations * 2)))
 print('Precision: {}'.format(precision_avg / (iterations * 2)))
 print('Recall: {}'.format(recall_avg / (iterations * 2)))
-print('Accuracy: {}'.format(f1_avg / (iterations * 2)))
+print('F1: {}'.format(f1_avg / (iterations * 2)))
 
 # Diccionario para decodificar el nombre de las clases
 categorical_decoder_class = {0: 'RESIDENTIAL',

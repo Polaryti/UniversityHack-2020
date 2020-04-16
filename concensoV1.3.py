@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, precision_score, recall_score
 from datasets_get import reduce_colors, reduce_geometry_average
 import random
 
@@ -103,21 +103,21 @@ with open(r'Data\Estimar_UH2020.txt') as read_file:
 data_predict = np.array(data_predict)
 
 #############################################
-df_mod = reduce_colors(pd.DataFrame(data=data))
-df_est = reduce_colors(pd.DataFrame(data=data_predict))
+# df_mod = reduce_colors(pd.DataFrame(data=data))
+# df_est = reduce_colors(pd.DataFrame(data=data_predict))
 
-df_mod = reduce_geometry_average(df_mod)
-df_est = reduce_geometry_average(df_est)
+# df_mod = reduce_geometry_average(df_mod)
+# df_est = reduce_geometry_average(df_est)
 
-df_mod = df_mod.values
-df_est = df_est.values
+# df_mod = df_mod.values
+# df_est = df_est.values
 ##############################################
 
 # Variable que contendra las predicciones globales de cada muestra
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 100
+iterations = 15
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
@@ -128,7 +128,10 @@ debug_mode = True
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
 test_avg = 0.06
 
-sum_avg = 0
+accuracy_avg = 0
+precision_avg = 0
+recall_avg = 0
+f1_avg = 0
 
 for ite in range(iterations):
     data_proc = []
@@ -177,9 +180,13 @@ for ite in range(iterations):
         #print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
         print('XGBoost ({})'.format(ite))
         print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
+        print('Precision (macro): {}'.format(precision_score(y_test, y_pred, average = 'macro')))
         print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
         print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
-        sum_avg += f1_score(y_test, y_pred, average = 'macro')
+        accuracy_avg += accuracy_score(y_test, y_pred)
+        precision_avg += precision_score(y_test, y_pred, average = 'macro')
+        recall_avg += recall_score(y_test, y_pred, average = 'macro')
+        f1_avg += f1_score(y_test, y_pred, average = 'macro')
     
     predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
     for i in range(len(data_predict)):
@@ -205,9 +212,13 @@ for ite in range(iterations):
         # print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
         print('RF ({})'.format(ite))
         print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
+        print('Precision (macro): {}'.format(precision_score(y_test, y_pred, average = 'macro')))
         print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
         print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
-        sum_avg += f1_score(y_test, y_pred, average = 'macro')
+        accuracy_avg += accuracy_score(y_test, y_pred)
+        precision_avg += precision_score(y_test, y_pred, average = 'macro')
+        recall_avg += recall_score(y_test, y_pred, average = 'macro')
+        f1_avg += f1_score(y_test, y_pred, average = 'macro')
     
     print('\n')
     predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
@@ -216,7 +227,12 @@ for ite in range(iterations):
             predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
         else:
             predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
-print('Entrenamiento completo {}'.format(sum_avg / (iterations * 2)))
+
+print('\nEntrenamiento completo\n')
+print('Accuracy: {}'.format(accuracy_avg / (iterations * 2)))
+print('Precision: {}'.format(precision_avg / (iterations * 2)))
+print('Recall: {}'.format(recall_avg / (iterations * 2)))
+print('F1: {}'.format(f1_avg / (iterations * 2)))
 
 # Diccionario para decodificar el nombre de las clases
 categorical_decoder_class = {0: 'RESIDENTIAL',
@@ -230,7 +246,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Resultados/Minsait_Universitat Politècnica de València_AstralariaG.txt', 'w') as write_file:
+with open(r'Resultados/Res_Int-FaseII', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in data_predict:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
