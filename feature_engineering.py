@@ -60,8 +60,8 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
                 
                 indices = np.add(indices, pred_estimar[neigh_indices[0][j]-offset,:])
 
-        #cont.append(indices)# Sin softmax
-        cont.append(softmax(np.array(indices))) #Con softmax
+        cont.append(indices)# Sin softmax
+        #cont.append(softmax(np.array(indices))) #Con softmax
 
     indexes_est = []
     for i in range(X_estimar.shape[0]):
