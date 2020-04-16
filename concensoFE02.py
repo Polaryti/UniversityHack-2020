@@ -180,7 +180,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Resultados/Res_FE-02', 'w') as write_file:
+with open(r'Resultados/Res_FE-03', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in X_estimar:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
