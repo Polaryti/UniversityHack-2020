@@ -12,18 +12,28 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
 import random
 from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average, reduce_colors
+from feature_engineering import coordinates_fe
 
-X_modelar = reduce_geometry_average(getX(get_modelar_data_ids()))
-X_modelar = reduce_colors(X_modelar)
+print("Start")
+#X_modelar = reduce_geometry_average(getX(get_modelar_data()))
+#X_modelar = reduce_colors(X_modelar)
 
-X_estimar = reduce_geometry_average(get_estimar_data())
-X_estimar = reduce_colors(X_estimar)
+#X_estimar = reduce_geometry_average(get_estimar_data())
+#X_estimar = reduce_colors(X_estimar)
 
-X_modelar = X_modelar.values
-Y_modelar = getY(get_modelar_data()).values
+X_modelar = getX(get_modelar_data_ids())
+X_estimar = get_estimar_data()
+Y_modelar = getY(get_modelar_data())
 
-X_estimar = X_estimar.values
+X_modelar, X_estimar = coordinates_fe(X_modelar, Y_modelar, X_estimar)
 
+Y_modelar = Y_modelar.values
+
+Y_modelar = Y_modelar[1:, :]
+X_estimar = X_estimar[1:, :]
+X_modelar = X_modelar[1:, :]
+
+print("Dataframes charged")
 # Variable que contendrá las muestras separadas por clase
 data_per_class = []
 
@@ -43,7 +53,7 @@ data_proc = []
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 3
+iterations = 20
 
 # Si True, muestra información de cada modelo local tras entrenarlo
 debug_mode = True
@@ -53,6 +63,7 @@ test_avg = 0.06
 
 sum_avg = 0
 
+print('Start iterations\n')
 for ite in range(iterations):
     data_proc = []
     # Muestras de la clase RESIDENTIAL
@@ -78,7 +89,7 @@ for ite in range(iterations):
 
 
     # Mostramos el porcentaje de entrenamiento
-    print('Entrenamiento completo al {}%'.format(ite/iterations * 100))
+    print('Entrenamiento completo al {}%\n'.format(ite/iterations * 100))
     
     # Modelo XGB
     model = xgb.XGBClassifier(

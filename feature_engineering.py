@@ -18,13 +18,13 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
     spatialTree = cKDTree(np.c_[coords.X.ravel(),coords.Y.ravel()])
 
     X_est_mod.drop([0,1,2],inplace=True,axis=1)
-    X_est_mod = reduce_colors(X_est_mod)
+    #X_est_mod = reduce_colors(X_est_mod)
 
     X_estimar.drop([0,1,2],inplace=True,axis=1)
-    X_estimar = reduce_colors(X_estimar)
+    #X_estimar = reduce_colors(X_estimar)
 
     X_modelar.drop([0,1,2],inplace=True,axis=1)
-    X_modelar = reduce_colors(X_modelar)
+    #X_modelar = reduce_colors(X_modelar)
 
     """
     print(list(X_modelar.columns.values))
@@ -77,10 +77,9 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
 
     for column in col_names:
         X_modelar[column] = context_modelar[column]
-        X_estimar[column] = context_estimar[column]
-
+        X_estimar[column] = context_estimar[column] 
 
     return X_modelar.values, X_estimar.values
 
 
-coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
+#coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
