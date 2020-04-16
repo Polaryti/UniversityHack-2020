@@ -9,7 +9,7 @@ import pandas as pd
 from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, recall_score
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, precision_score, recall_score
 import random
 from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average, reduce_colors
 from feature_engineering import coordinates_fe
@@ -53,7 +53,7 @@ data_proc = []
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 20
+iterations = 15
 
 # Si True, muestra información de cada modelo local tras entrenarlo
 debug_mode = True
@@ -61,7 +61,10 @@ debug_mode = True
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
 test_avg = 0.06
 
-sum_avg = 0
+accuracy_avg = 0
+precision_avg = 0
+recall_avg = 0
+f1_avg = 0
 
 print('Start iterations\n')
 for ite in range(iterations):
@@ -111,9 +114,13 @@ for ite in range(iterations):
         #print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
         print('XGBoost ({})'.format(ite))
         print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
+        print('Precision (macro): {}'.format(precision_score(y_test, y_pred, average = 'macro')))
         print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
         print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
-        sum_avg += f1_score(y_test, y_pred, average = 'macro')
+        accuracy_avg += accuracy_score(y_test, y_pred)
+        precision_avg += precision_score(y_test, y_pred, average = 'macro')
+        recall_avg += recall_score(y_test, y_pred, average = 'macro')
+        f1_avg += f1_score(y_test, y_pred, average = 'macro')
     
     predictions_aux = model.predict(X_estimar[:, 1:].astype('float32'))  
     for i in range(len(X_estimar)):
@@ -139,9 +146,13 @@ for ite in range(iterations):
         # print('Informe de clasificación:\n{}\n'.format(classification_report(y_test, y_pred)))
         print('RF ({})'.format(ite))
         print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
+        print('Precision (macro): {}'.format(precision_score(y_test, y_pred, average = 'macro')))
         print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
-        print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
-        sum_avg += f1_score(y_test, y_pred, average = 'macro')
+        print('F1 (macro): {}\n'.format(f1_score(y_test, y_pred, average = 'macro')))
+        accuracy_avg += accuracy_score(y_test, y_pred)
+        precision_avg += precision_score(y_test, y_pred, average = 'macro')
+        recall_avg += recall_score(y_test, y_pred, average = 'macro')
+        f1_avg += f1_score(y_test, y_pred, average = 'macro')
     
     print('\n')
     predictions_aux = model.predict(X_estimar[:, 1:].astype('float32'))
@@ -150,7 +161,12 @@ for ite in range(iterations):
             predictions[X_estimar[i, 0]] = [int(predictions_aux[i])]
         else:
             predictions[X_estimar[i, 0]].append(int(predictions_aux[i]))
-print('Entrenamiento completo {}'.format(sum_avg / (iterations * 2)))
+
+print('\nEntrenamiento completo\n')
+print('Accuracy: {}'.format(accuracy_avg / (iterations * 2)))
+print('Precision: {}'.format(precision_avg / (iterations * 2)))
+print('Recall: {}'.format(recall_avg / (iterations * 2)))
+print('F1: {}'.format(f1_avg / (iterations * 2)))
 
 # Diccionario para decodificar el nombre de las clases
 categorical_decoder_class = {0: 'RESIDENTIAL',
@@ -164,7 +180,7 @@ categorical_decoder_class = {0: 'RESIDENTIAL',
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
 
-with open(r'Resultados/Minsait_Universitat Politècnica de València_Astralaria_FE.txt', 'w') as write_file:
+with open(r'Resultados/Res_FE-01', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in X_estimar:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
