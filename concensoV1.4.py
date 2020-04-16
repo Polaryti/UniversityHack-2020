@@ -13,52 +13,37 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import random
 from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average, reduce_colors
 
-print('Comienzo')
-X_modelar = reduce_geometry_average(getX(get_modelar_data()))
+X_modelar = reduce_geometry_average(getX(get_modelar_data_ids()))
 X_modelar = reduce_colors(X_modelar)
-print('Geo1')
+
 X_estimar = reduce_geometry_average(get_estimar_data())
 X_estimar = reduce_colors(X_estimar)
-print('Geo2')
-
-
-Y_modelar = np.array(getY(get_modelar_data()))
-Y_modelar = Y_modelar[1:, :]
-print(Y_modelar.shape)
-
-X_estimar = np.array(X_estimar)
-X_estimar = X_estimar[1:, :] # Quitamos el nombre de las variables
-print(X_estimar.shape)
-
-X_modelar = np.array(X_modelar)
-X_modelar = X_modelar[1:, :] # Quitamos el nombre de las variables
-print(X_modelar.shape)
 
 X_modelar = X_modelar.values
+Y_modelar = getY(get_modelar_data()).values
+
+X_estimar = X_estimar.values
 
 # Variable que contendrá las muestras separadas por clase
 data_per_class = []
 
 # Añadimos una lista vacía por clase
-algo_aux = []
 for _ in range(7):         
     data_per_class.append([])
+
 # Añadimos a la lista de cada clase las muestras de esta
 for i in range(len(X_modelar)):
-    data_per_class[int(Y_modelar[i])].append(X_modelar[i] + [Y_modelar[i]])
+    data_per_class[int(Y_modelar[i])].append(X_modelar[i, 1:].tolist() + Y_modelar[i].tolist())
 
 
 # Variable que contendrá los datos procesados
 data_proc = []
 
-# Variable que contendrá las muestras a predecir
-data_predict = []
-
 # Variable que contendra las predicciones globales de cada muestra
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 20
+iterations = 3
 
 # Si True, muestra información de cada modelo local tras entrenarlo
 debug_mode = True
@@ -119,12 +104,12 @@ for ite in range(iterations):
         print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
         sum_avg += f1_score(y_test, y_pred, average = 'macro')
     
-    predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))  
-    for i in range(len(data_predict)):
-        if (data_predict[i, 0] not in predictions):
-            predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
+    predictions_aux = model.predict(X_estimar[:, 1:].astype('float32'))  
+    for i in range(len(X_estimar)):
+        if (X_estimar[i, 0] not in predictions):
+            predictions[X_estimar[i, 0]] = [int(predictions_aux[i])]
         else:
-            predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
+            predictions[X_estimar[i, 0]].append(int(predictions_aux[i]))
         
     # Modelo RandomForest
     model = RandomForestClassifier(
@@ -150,7 +135,7 @@ for ite in range(iterations):
     print('\n')
     predictions_aux = model.predict(X_estimar[:, 1:].astype('float32'))
     for i in range(len(X_estimar)):
-        if (data_predict[i, 0] not in predictions):
+        if (X_estimar[i, 0] not in predictions):
             predictions[X_estimar[i, 0]] = [int(predictions_aux[i])]
         else:
             predictions[X_estimar[i, 0]].append(int(predictions_aux[i]))
@@ -170,5 +155,5 @@ def most_frequent(lst):
 
 with open(r'Resultados/Minsait_Universitat Politècnica de València_Astralaria_FE.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
-    for sample in data_predict:
+    for sample in X_estimar:
         write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
