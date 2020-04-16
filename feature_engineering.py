@@ -70,7 +70,6 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
     context  = pd.DataFrame(data=cont,columns=col_names)
     context_modelar = context.loc[:offset-1]
     context_estimar = context.loc[offset:]
-    #context_estimar.reset_index()
     context_estimar.index = range(5618)
 
     #context.drop('coords_RESIDENTIAL',axis=1,inplace=True) #PROBAR CON Y SIN
@@ -78,8 +77,8 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
     for column in col_names:
         X_modelar[column] = context_modelar[column]
         X_estimar[column] = context_estimar[column] 
-    X_estimar[0] = est_IDs
-    
+    #X_estimar[0] = est_IDs
+
     return X_modelar.values, X_estimar.values, est_IDs
 
 

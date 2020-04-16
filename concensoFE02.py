@@ -124,7 +124,7 @@ for ite in range(iterations):
         recall_avg += recall_score(y_test, y_pred, average = 'macro')
         f1_avg += f1_score(y_test, y_pred, average = 'macro')
     
-    predictions_aux = model.predict(X_estimar[1:, 1:].astype('float32'))  
+    predictions_aux = model.predict(X_estimar[:, 1:].astype('float32'))  
     for i in range(len(X_estimar)):
         if (X_estimar[i, 0] not in predictions):
             predictions[X_estimar[i, 0]] = [int(predictions_aux[i])]
