@@ -3,8 +3,9 @@ import pandas as pd
 import numpy as np
 import math
 from sklearn.model_selection import train_test_split
+from datasets_get import get_modelar_data_ids
 
-def dividir_dataset(df, train_percentage=0.8, test_percentage=0.2, randomized=False, residential_perc=3000, industrial_perc=1400, public_perc=900, retail_perc=800, office_perc=500, other_perc=700, agriculture_perc=150):
+def dividir_dataset(df, train_percentage=0.8, test_percentage=0.2, randomized=False, residential_perc=3000, industrial_perc=1400, public_perc=900, retail_perc=700, office_perc=400, other_perc=600, agriculture_perc=100):
     np.random.seed(7)
     if train_percentage + test_percentage != 1:
         print("El dataset debe emplearse entero, los porcentajes de train y test deben sumar 1.")
@@ -25,8 +26,23 @@ def dividir_dataset(df, train_percentage=0.8, test_percentage=0.2, randomized=Fa
         dfres = df.loc[df['CLASS'] == 0].sample(n=6000)
         dfothers = df.loc[df['CLASS'] != 0]
         df_train = dfres.append(dfothers, ignore_index=True)
-        #Devuelve una tupla, en 0 el train y en 1 el test.
+        #Devuelve 3 valores: X_modelar, Y_modelar, 
         for i in range(7):
             print('Class ' + str(i) + ' train: ' + str(df_train.loc[df_train['CLASS'] == i].shape[0]))
             print('Class ' + str(i) + ' test: ' + str(df_list[0].loc[df_list[0]['CLASS'] == i].shape[0]))
+
+        print(df_train)
+        print(df_list[0])
         return df_train.sample(frac=1), df_list[0].sample(frac=1)
+
+
+def random_undersample_residential(df, residential_samples=6000):
+    n_drop = df.loc[df['CLASS'] == 0].shape[0] - 6000
+    df_res_drop = df.loc[df['CLASS'] == 0].sample(n=n_drop)
+    df = pd.concat([df, df_res_drop]).drop_duplicates(keep=False).sample(frac=1)
+    print(df)
+    df.index = range(df.shape[0])
+    print(df)
+    return df
+
+random_undersample_residential(get_modelar_data_ids())

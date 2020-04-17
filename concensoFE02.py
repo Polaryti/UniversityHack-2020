@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, precision_score, recall_score
 import random
 from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average, reduce_colors
+from not_random_test_generator import dividir_dataset, random_undersample_residential
 from feature_engineering import coordinates_fe
 
 print("Start")
@@ -21,11 +22,12 @@ print("Start")
 #X_estimar = reduce_geometry_average(get_estimar_data())
 #X_estimar = reduce_colors(X_estimar)
 
-X_modelar = getX(get_modelar_data_ids())
+modelar_df = random_undersample_residential(get_modelar_data_ids())
+X_modelar = getX(modelar_df)
 X_estimar = get_estimar_data()
-Y_modelar = getY(get_modelar_data())
+Y_modelar = getY(modelar_df)
 
-X_modelar, X_estimar = coordinates_fe(X_modelar, Y_modelar, X_estimar)
+X_modelar, X_estimar, est_IDS = coordinates_fe(X_modelar, Y_modelar, X_estimar)
 
 Y_modelar = Y_modelar.values
 
@@ -160,7 +162,7 @@ for ite in range(iterations):
         if (X_estimar[i, 0] not in predictions):
             predictions[X_estimar[i, 0]] = [int(predictions_aux[i])]
         else:
-            predictions[X_estimar[i, 0]].append(int(predictions_aux[i]))
+            predictions[X_estimar[i, 0]].append(int(predictions_aux[i])) 
 
 print('\nEntrenamiento completo\n')
 print('Accuracy: {}'.format(accuracy_avg / (iterations * 2)))
