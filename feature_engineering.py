@@ -123,8 +123,28 @@ def density_RGB_scale(df):
     df['GREEN'] = colorGreen
     df['BLUE'] = colorBlue
 
-    return df.values        
-        
+    return df  
 
+def density_NIR_conditional_mean(df):
+    colorNIR = []
+    sums = []
+    total_sum = 0
+    for j in range(df.shape[0]):
+        sumNIR = 0
+        for i in range(36, 47):
+            sumNIR += df.loc[j,i]
+        total_sum += sumNIR
+        sums.append(sumNIR)
+    mean = total_sum / df.shape[0]
+    for value in sums:
+        if value <= mean:
+            colorNIR.append(0)
+        else:
+            colorNIR.append(1)
+    for i in range(36,47):
+        del df[i]
+    df['NIR_MEAN_COND'] = colorNIR
+
+    return df.values
 
 #coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
