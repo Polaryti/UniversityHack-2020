@@ -82,4 +82,49 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
     return X_modelar.values, X_estimar.values, est_IDs
 
 
+def density_RGB_scale(df):
+    colorRed = []
+    colorGreen = []
+    colorBlue = []
+    for j in range(df.shape[0]):
+        sumR = 0
+        sumG = 0
+        sumB = 0
+        for i in range(3,14):
+            sumR += df.loc[j,i]
+        for i in range(14,25):
+            sumG += df.loc[j,i]
+        for i in range(25,36):
+            sumB += df.loc[j,i]
+        sums = [sumR, sumG, sumB]
+        min_index = sums.index(min(sums))
+        max_index = sums.index(max(sums))
+        if min_index == 0:
+            colorRed.append(0)
+        elif min_index == 1:
+            colorGreen.append(0)
+        elif min_index == 2:
+            colorBlue.append(0)
+        if max_index == 0:
+            colorRed.append(2)
+        elif max_index == 1:
+            colorGreen.append(2)
+        elif max_index == 2:
+            colorBlue.append(2)
+        if len(colorRed) < len(colorGreen):
+            colorRed.append(1)
+        elif len(colorGreen) < len(colorRed):
+            colorGreen.append(1)
+        elif len(colorBlue) < len(colorGreen):
+            colorBlue.append(1)
+    for i in range(3,36):
+        del df[i]
+    df['RED'] = colorRed
+    df['GREEN'] = colorGreen
+    df['BLUE'] = colorBlue
+
+    return df.values        
+        
+
+
 #coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
