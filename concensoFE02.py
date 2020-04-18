@@ -13,21 +13,24 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import random
 from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average, reduce_colors
 from not_random_test_generator import dividir_dataset, random_undersample_residential
-from feature_engineering import coordinates_fe
+from feature_engineering import coordinates_fe, density_NIR_conditional_mean, density_RGB_scale, dfs_fe
 
 print("Start")
-#X_modelar = reduce_geometry_average(getX(get_modelar_data()))
-#X_modelar = reduce_colors(X_modelar)
 
-#X_estimar = reduce_geometry_average(get_estimar_data())
-#X_estimar = reduce_colors(X_estimar)
-
+#Cargamos el dataframe modelar con 6000 muestras aleatorias de residential y el resto de las otras clases, barajeadas.
 modelar_df = random_undersample_residential(get_modelar_data_ids())
-X_modelar = getX(modelar_df)
-X_estimar = get_estimar_data()
+#Obtenemos las X, Y con:
+#Densidad NIR, 1 si es mayor que la media, 0 si no.
+#Densidad RGB, [0, 1, 2] de menor a mayor valor acumulado de los deciles.
+#
+X_modelar = getX(density_NIR_conditional_mean(density_RGB_scale(modelar_df)))
+X_estimar = density_NIR_conditional_mean(density_RGB_scale(get_estimar_data()))
 Y_modelar = getY(modelar_df)
 
+
 X_modelar, X_estimar, est_IDS = coordinates_fe(X_modelar, Y_modelar, X_estimar)
+X_modelar = dfs_fe(X_modelar)
+X_estimar = dfs_fe(X_estimar)
 
 Y_modelar = Y_modelar.values
 
@@ -68,7 +71,7 @@ precision_avg = 0
 recall_avg = 0
 f1_avg = 0
 
-print('Start iterations\n')
+print('\nStart iterations\n')
 for ite in range(iterations):
     data_proc = []
     # Muestras de la clase RESIDENTIAL

@@ -8,6 +8,7 @@ from datasets_get import get_modelar_data, get_estimar_data, getX, getY, get_mod
 from datasets_get import reduce_colors
 from scipy.spatial import cKDTree
 from scipy.special import softmax
+import featuretools as ft
 
 
 def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
@@ -79,7 +80,8 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
         X_estimar[column] = context_estimar[column] 
     #X_estimar[0] = est_IDs
 
-    return X_modelar.values, X_estimar.values, est_IDs
+    #return X_modelar.values, X_estimar.values, est_IDs
+    return X_modelar, X_estimar, est_IDs
 
 
 def density_RGB_scale(df):
@@ -145,6 +147,22 @@ def density_NIR_conditional_mean(df):
         del df[i]
     df['NIR_MEAN_COND'] = colorNIR
 
+    return df
+
+
+def dfs_fe(df):
+    columns_ids = list(df.columns.values)
+    print(columns_ids)
+    for value in columns_ids:
+        if isinstance(value, int):
+            df.rename(columns={value : str(value)}, inplace=True)
+    es = ft.EntitySet(id='main')
+    es.entity_from_dataframe(entity_id='data', dataframe=df, make_index=True, index='index')
+    feature_matrix, feature_defs = ft.dfs(entityset=es, target_entity='data')
+    print(feature_matrix)
+    print(feature_defs)
     return df.values
+
+
 
 #coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
