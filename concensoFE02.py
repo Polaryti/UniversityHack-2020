@@ -32,6 +32,9 @@ X_modelar, X_estimar, est_IDS = coordinates_fe(X_modelar, Y_modelar, X_estimar)
 X_modelar = dfs_fe(X_modelar)
 X_estimar = dfs_fe(X_estimar)
 
+X_modelar = density_RGB_scale(X_modelar)
+X_estimar = density_RGB_scale(X_estimar)
+
 Y_modelar = Y_modelar.values
 
 Y_modelar = Y_modelar[1:, :]
