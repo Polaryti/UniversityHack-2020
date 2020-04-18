@@ -13,7 +13,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import random
 from datasets_get import getX, getY, get_estimar_data, get_modelar_data, get_modelar_data_ids, reduce_geometry_average, reduce_colors
 from not_random_test_generator import dividir_dataset, random_undersample_residential
-from feature_engineering import coordinates_fe
+from feature_engineering import coordinates_fe, density_RGB_scale
 
 print("Start")
 #X_modelar = reduce_geometry_average(getX(get_modelar_data()))
@@ -28,6 +28,9 @@ X_estimar = get_estimar_data()
 Y_modelar = getY(modelar_df)
 
 X_modelar, X_estimar, est_IDS = coordinates_fe(X_modelar, Y_modelar, X_estimar)
+
+X_modelar = density_RGB_scale(X_modelar)
+X_estimar = density_RGB_scale(X_estimar)
 
 Y_modelar = Y_modelar.values
 
