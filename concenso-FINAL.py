@@ -4,10 +4,7 @@ from sklearn.model_selection import StratifiedShuffleSplit, train_test_split
 import xgboost as xgb
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, precision_score, recall_score
-from datasets_get import getX, getY, get_estimar_data, get_modelar_data_ids, reduce_colors, reduce_geometry_average
 import random
-from not_random_test_generator import random_undersample_residential
-from feature_engineering import coordinates_fe, density_RGB_scale
 
 ### INICIO PARTE PRETRATAMIENTO DE DATOS MANUALES ###
 # Diccionario para codificar los nombres de las clases
@@ -104,10 +101,10 @@ data_proc = []
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 10
+iterations = 30
 
 # Si True, muestra información de cada modelo local tras entrenarlo
-debug_mode = True
+debug_mode = False
 
 # Si True, guarda los mejores modelos para poder replicar el clasificador
 persistent_mode = False
@@ -268,11 +265,11 @@ for ite in range(iterations):
 
 
 print('\nEntrenamiento completo\n')
-print('Métricas del entrenamiento')
+print('MÉTRICAS DEL ENTRENAMIENTO (global)')
 print('Accuracy: {}'.format(accuracy_avg / (iterations * 2)))
-print('Precision: {}'.format(precision_avg / (iterations * 2)))
-print('Recall: {}'.format(recall_avg / (iterations * 2)))
-print('F1: {}'.format(f1_avg / (iterations * 2)))
+print('Precision (macro): {}'.format(precision_avg / (iterations * 2)))
+print('Recall (macro): {}'.format(recall_avg / (iterations * 2)))
+print('F1(macro): {}'.format(f1_avg / (iterations * 2)))
 
 # 1. Ordenamos 'concensous' según una métrica
 concensus = sorted(concensus, key = lambda i: i['f1'], reverse = True)
@@ -285,8 +282,6 @@ accuracy_avg = 0
 precision_avg = 0
 recall_avg = 0
 f1_avg = 0
-
-
 
 for i in range(n):
     # Métricas
@@ -303,11 +298,11 @@ for i in range(n):
         else:
             predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
 
-print('\nMétricas del modelo conceso')
+print('\nMÉTRICAS DEL MODELO (concenso)')
 print('Accuracy: {}'.format(accuracy_avg / n))
-print('Precision: {}'.format(precision_avg / n))
-print('Recall: {}'.format(recall_avg / n))
-print('F1: {}'.format(f1_avg / n))
+print('Precision (macro): {}'.format(precision_avg / n))
+print('Recall (macro): {}'.format(recall_avg / n))
+print('F1 (macro): {}'.format(f1_avg / n))
 
 # 4. Guardamos la partición que mejor resultado ha dado
 # TODO: concensus[0]['data'] -> fichero csv
