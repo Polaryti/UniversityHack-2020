@@ -79,7 +79,7 @@ def data_balancing(method, f):
     print('Entra en data balancing')
     f.write('-BALANCEO DE DATOS, técnica: ')
     if method == 0:
-        #SMOTE y ENN
+        #ROS y ENN
         f.write('ROS + ENN-\n')
         X_s_enn, y_s_enn = random_over_sampler(X_train_80_20, y_train_80_20)
         X_s_enn, y_s_enn = edited_nearest_neighbour(X_s_enn, y_s_enn)

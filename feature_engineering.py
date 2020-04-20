@@ -6,6 +6,7 @@ import xgboost as xgb
 from sklearn.multiclass import OneVsRestClassifier
 from datasets_get import get_modelar_data, get_estimar_data, getX, getY, get_modelar_data_ids, get_categories_list, reduce_geometry_average
 from datasets_get import reduce_colors
+from visualization import violin_plot_kdtree
 from scipy.spatial import cKDTree
 from scipy.special import softmax
 import featuretools as ft
@@ -70,19 +71,21 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
 
     context  = pd.DataFrame(data=cont,columns=col_names)
     context_modelar = context.loc[:offset-1]
+    
     context_estimar = context.loc[offset:]
     context_estimar.index = range(5618)
-
+    violin_plot_kdtree(context_modelar, y_modelar)
+    
     #context.drop('coords_RESIDENTIAL',axis=1,inplace=True) #PROBAR CON Y SIN
 
     for column in col_names:
         X_modelar[column] = context_modelar[column]
         X_estimar[column] = context_estimar[column] 
-    #X_estimar[0] = est_IDs
 
     #return X_modelar.values, X_estimar.values, est_IDs
     return X_modelar, X_estimar, est_IDs
 
+coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
 
 def density_RGB_scale(df):
     colorRed = []

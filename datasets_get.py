@@ -107,6 +107,32 @@ def get_modelar_data(missing_value = 0, one_hot = True):
     return df
 
 
+def get_mod_data_original():
+    # Variable que contendrá las muestras
+    data = []
+
+    with open(r'Data/Modelar_UH2020.txt') as read_file:
+        # La primera linea del documento es el nombre de las variables, no nos interesa
+        read_file.readline()
+        # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
+        for line in read_file.readlines():
+            # Eliminamos el salto de línea final
+            line = line.replace('\n', '')
+            # Separamos por el elemento delimitador
+            line = line.split('|')
+            if line[54] in categorical_encoder_catastral:
+                line[54] = categorical_encoder_catastral[line[54]]
+                if line[54] is 50:
+                    line[53] = -1
+            line[55] = categorical_encoder_class[line[55]]
+            # No nos interesa el identificador de la muestra, lo descartamos
+            data.append(line[1:])
+
+    # Finalmente convertimos las muestras preprocesadas a una matriz
+    data = np.array(data).astype('float32')
+    df = pd.DataFrame(data=data).rename(columns={54:'CLASS'})
+    return df
+
 def get_modelar_data_ids(missing_value = 0, one_hot = True):
     # Variable que contendrá las muestras
     data_list = []
@@ -145,8 +171,6 @@ def get_modelar_data_ids(missing_value = 0, one_hot = True):
 
 
 def getX(modelar_df):
-    # aux = modelar_df.loc[:, modelar_df.columns!=CLASS]
-    # return aux.loc[:, modelar_df.columns!='ID']
     return modelar_df.loc[:, modelar_df.columns!=CLASS]
 
 
