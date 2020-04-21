@@ -58,10 +58,10 @@ debug_mode = True
 persistent_mode = False
 
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
-test_avg = 0.15
+test_avg = 0.20
 
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de mejores modelos a utilizar
-best_model_avg = 0.4
+best_model_avg = 0.5
 
 # Variables que miden las métricas globlales del ENTRENAMIENTO
 accuracy_avg = 0

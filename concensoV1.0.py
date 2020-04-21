@@ -86,7 +86,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 15
+iterations = 20
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
