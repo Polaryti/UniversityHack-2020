@@ -248,7 +248,4 @@ def get_estimar_data(missing_value = 0, one_hot = True):
     dfids = pd.DataFrame(data=ids)
     dfa = pd.DataFrame(data=data_predict)
     dfa[0] = dfids
-    print(dfa)
     return dfa
-
-get_estimar_data()
