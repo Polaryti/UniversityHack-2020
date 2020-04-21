@@ -11,7 +11,8 @@ from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import seaborn as sns
 import random
-from .datasets_get import get_modelar_data, get_estimar_data, get_categories_list, getX, getY, get_mod_data_original, get_categorical_decoder_class
+from mpl_toolkits.mplot3d import Axes3D
+from datasets_get import get_modelar_data, get_estimar_data, get_categories_list, getX, getY, get_mod_data_original, get_categorical_decoder_class
 
 def hist_decomposition():
     categories_list = get_categories_list()
@@ -40,7 +41,10 @@ def pca_2d(X, y, n_components=2):
     X['pca_first'] = pca_transform[:,0]
     X['pca_second'] = pca_transform[:,1]
     X['CLASS'] = y
+    decoder = get_categorical_decoder_class()
+    X = X.replace({'CLASS' : decoder})
     print(pca.explained_variance_ratio_)
+    print(X)
     plt.figure(figsize=(15,10))
     sns.scatterplot(
     x="pca_first", y="pca_second",
@@ -57,13 +61,14 @@ def pca_3d(X, y, n_components=3):
     X['pca_first'] = pca_transform[:,0]
     X['pca_second'] = pca_transform[:,1]
     X['pca_third'] = pca_transform[:,2]
+    X['CLASS'] = y
     print(pca.explained_variance_ratio_)
     ax = plt.figure(figsize=(15,10)).gca(projection='3d')
     scatter = ax.scatter(
     xs=X["pca_first"],
     ys=X["pca_second"],
     zs=X["pca_third"],
-    c=y['CLASS'],
+    c=X['CLASS'],
     cmap='tab10',
     alpha=0.3
     )
@@ -75,18 +80,20 @@ def pca_3d(X, y, n_components=3):
 
 def tsne(X, y, perplexity, comp):
     for perp in perplexity:
-        tsne = TSNE(n_components=comp, verbose=0, perplexity=perp, n_iter=400)
+        tsne = TSNE(n_components=comp, verbose=0, perplexity=perp, n_iter=250)
         features = list(X.columns.values)
         tsne_results = tsne.fit_transform(X[features].values)
         X['tsne-2d-first'] = tsne_results[:,0]
         X['tsne-2d-second'] = tsne_results[:,1]
         X['CLASS'] = y
+        decoder = get_categorical_decoder_class()
+        X = X.replace({'CLASS' : decoder})
         print('Perplexity = ',perp)
         plt.figure(figsize=(14,10))
         sns.scatterplot(
         x="tsne-2d-first", y="tsne-2d-second",
         hue='CLASS',
-        palette=sns.color_palette("hls", 2),
+        palette=sns.color_palette("hls", 7),
         data=X,
         legend="full",
         alpha=0.3
@@ -115,3 +122,5 @@ def violin_plot_kdtree(df, y):
         ax = plt.figure(figsize=(14,7))
         ax = sns.violinplot(x='CLASS', y=df[col], data=df)
         plt.show()
+
+tsne(getX(get_mod_data_original()), getY(get_mod_data_original()), [50], 2)
