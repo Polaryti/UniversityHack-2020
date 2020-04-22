@@ -6,7 +6,7 @@ from sklearn.manifold import TSNE
 import seaborn as sns
 import random
 from mpl_toolkits.mplot3d import Axes3D
-from datasets_get import get_modelar_data, get_categories_list, get_categorical_decoder_class, get_mod_data_original
+from .datasets_get import get_modelar_data, get_categories_list, get_categorical_decoder_class, get_mod_data_original
 
 
 """
@@ -47,7 +47,6 @@ def pca_2d(X, y, n_components=2):
     decoder = get_categorical_decoder_class()
     X = X.replace({'CLASS' : decoder})
     print(pca.explained_variance_ratio_)
-    print(X)
     plt.figure(figsize=(15,10))
     sns.scatterplot(
     x="pca_first", y="pca_second",
