@@ -85,6 +85,7 @@ def get_modelar_data(missing_value = 0, one_hot = True):
     with open(r'Data/Modelar_UH2020.txt') as read_file:
         # La primera linea del documento es el nombre de las variables, no nos interesa
         # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
+        read_file.readline()
         for line in read_file.readlines():
             # Eliminamos el salto de línea final
             line = line.replace('\n', '')
@@ -152,6 +153,7 @@ def get_modelar_data_ids(missing_value = 0, one_hot = True):
     with open(r'Data/Modelar_UH2020.txt') as read_file:
         # La primera linea del documento es el nombre de las variables, no nos interesa
         # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
+        read_file.readline()
         for line in read_file.readlines():
             # Eliminamos el salto de línea final
             line = line.replace('\n', '')
@@ -217,6 +219,7 @@ def get_estimar_data(missing_value = 0, one_hot = True):
     # with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Estimar_UH2020.txt') as read_file:
     with open(r'Data/Estimar_UH2020.txt') as read_file:
         # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valos catastral)
+        read_file.readline()
         for line in read_file.readlines():
             # Eliminamos el salto de línea final
             line = line.replace('\n', '')

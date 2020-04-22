@@ -37,13 +37,13 @@ Y_modelar = getY(modelar_df)
 
 # 3. Visualizaciones
 # Histograma descompensación
-hist_decomposition()
+#hist_decomposition()
 
 # PCA 2D y PCA 3D
-pca_general(X_mod_or, Y_mod_or)
+#pca_general(X_mod_or, Y_mod_or)
 
 # t-SNE
-tsne(X_mod_or, Y_mod_or, [50], 2)
+#tsne(X_mod_or, Y_mod_or, [50], 2)
 
 
 # 4. Feature engineering
