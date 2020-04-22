@@ -77,7 +77,7 @@ data_proc = []
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 100
+iterations = 2
 
 # Si True, muestra información de cada modelo local tras entrenarlo
 debug_mode = True
@@ -281,7 +281,6 @@ categorical_decoder_class = get_categorical_decoder_class()
 #Método que calcula la moda.
 def most_frequent(lst): 
     return max(set(lst), key = lst.count) 
-
 
 with open(r'UPV_Astralaria.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
