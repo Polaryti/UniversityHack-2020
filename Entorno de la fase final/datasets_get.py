@@ -82,9 +82,8 @@ def get_modelar_data(missing_value = 0, one_hot = True):
     # Variable que contendrá las muestras
     data_list = []
     # with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Modelar_UH2020.txt') as read_file:
-    with open(r'../Data/Modelar_UH2020.txt') as read_file:
+    with open(r'Data/Modelar_UH2020.txt') as read_file:
         # La primera linea del documento es el nombre de las variables, no nos interesa
-        labels = read_file.readline().split('|')
         # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
         for line in read_file.readlines():
             # Eliminamos el salto de línea final
@@ -119,7 +118,7 @@ def get_mod_data_original():
     # Variable que contendrá las muestras
     data = []
 
-    with open(r'../Data/Modelar_UH2020.txt') as read_file:
+    with open(r'Data/Modelar_UH2020.txt') as read_file:
         # La primera linea del documento es el nombre de las variables, no nos interesa
         read_file.readline()
         # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
@@ -150,9 +149,8 @@ def get_modelar_data_ids(missing_value = 0, one_hot = True):
     # Variable que contendrá las muestras
     data_list = []
     # with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Modelar_UH2020.txt') as read_file:
-    with open(r'../Data/Modelar_UH2020.txt') as read_file:
+    with open(r'Data/Modelar_UH2020.txt') as read_file:
         # La primera linea del documento es el nombre de las variables, no nos interesa
-        labels = read_file.readline().split('|')
         # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valor catastral y la clase)
         for line in read_file.readlines():
             # Eliminamos el salto de línea final
@@ -160,7 +158,7 @@ def get_modelar_data_ids(missing_value = 0, one_hot = True):
             # Separamos por el elemento delimitador
             line = line.split('|')
             # Cambiamos CONTRUCTIONYEAR a la antiguedad del terreno
-            line[52] = 2020 - int(line[52])
+            #line[52] = 2020 - int(line[52])
             if line[53] is '':
                 line[53] = missing_value
             line[55] = categorical_encoder_class[line[55]]
@@ -187,7 +185,7 @@ Método que devuelve los IDs del conjunto estimar.
 """
 def get_estimar_ids():
     data_list = []
-    with open(r'../Data/Estimar_UH2020.txt') as read_file:
+    with open(r'Data/Estimar_UH2020.txt') as read_file:
         for sample in read_file:
             data_list.append(sample[0])
     
@@ -217,9 +215,7 @@ def get_estimar_data(missing_value = 0, one_hot = True):
     # Variable que contendrá las muestras a predecir
     data_predict = []
     # with open(r'/home/asicoder/Documentos/Projects/Python/UniversityHack-2020/Data/Estimar_UH2020.txt') as read_file:
-    with open(r'../Data/Estimar_UH2020.txt') as read_file:
-        # La primera linea del documento es el nombre de las variables (al ser un Pandas Dataframe hay que añadirla)
-        labels = np.array(read_file.readline())
+    with open(r'Data/Estimar_UH2020.txt') as read_file:
         # Leemos línea por línea adaptando las muestras al formato deseado (codificar el valos catastral)
         for line in read_file.readlines():
             # Eliminamos el salto de línea final

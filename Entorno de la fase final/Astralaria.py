@@ -9,10 +9,10 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 import random
 
 # Métodos realizados por Astralaria, en Astralarialib
-from Astralarialib.datasets_get import get_modelar_data, getX, getY, get_mod_data_original, get_estimar_data, get_modelar_data_ids, get_categorical_decoder_class, get_estimar_ids
-from Astralarialib.feature_engineering import coordinates_fe
-from Astralarialib.random_undersampling import random_undersample_residential
-from Astralarialib.visualization import pca_general, tsne, hist_decomposition
+from datasets_get import get_modelar_data, getX, getY, get_mod_data_original, get_estimar_data, get_modelar_data_ids, get_categorical_decoder_class, get_estimar_ids
+from feature_engineering import coordinates_fe
+from random_undersampling import random_undersample_residential
+from visualization import pca_general, tsne, hist_decomposition
 
 
 # 2. Obtención de los datasets
@@ -260,10 +260,10 @@ for i in range(n):
     predictions_aux = model.predict(X_estimar[:, 1:].astype('float32'))
     ids = get_estimar_ids()
     for i in range(len(ids)):
-        if (ids[i, 0] not in predictions):
-            predictions[ids[i, 0]] = [int(predictions_aux[i])]
+        if (ids[i] not in predictions):
+            predictions[ids[i]] = [int(predictions_aux[i])]
         else:
-            predictions[ids[i, 0]].append(int(predictions_aux[i])) 
+            predictions[ids[i]].append(int(predictions_aux[i])) 
 
 print('\nMÉTRICAS DEL MODELO (concenso)')
 print('Accuracy: {}'.format(accuracy_avg / n))

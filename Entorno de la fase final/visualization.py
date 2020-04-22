@@ -6,7 +6,7 @@ from sklearn.manifold import TSNE
 import seaborn as sns
 import random
 from mpl_toolkits.mplot3d import Axes3D
-from .datasets_get import get_modelar_data, get_categories_list, get_categorical_decoder_class, get_mod_data_original
+from datasets_get import get_modelar_data, get_categories_list, get_categorical_decoder_class, get_mod_data_original
 
 
 """
