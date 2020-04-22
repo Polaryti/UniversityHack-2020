@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import xgboost as xgb
 from sklearn.multiclass import OneVsRestClassifier
-from .datasets_get import get_modelar_data, get_estimar_data, getX, getY, get_modelar_data_ids, get_categories_list
+from datasets_get import get_modelar_data, get_estimar_data, getX, getY, get_modelar_data_ids, get_categories_list
 from scipy.spatial import cKDTree
 from scipy.special import softmax
 import featuretools as ft
