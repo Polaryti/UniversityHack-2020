@@ -6,7 +6,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score, precision_score, recall_score
 import random
 
-### INICIO PARTE PRETRATAMIENTO DE DATOS MANUALES ###
+### INICIO PARTE PRETRATAMIENTO DE DATOS ###
 # Diccionario para codificar los nombres de las clases
 categorical_encoder_class = {'RESIDENTIAL': 0,
     'INDUSTRIAL': 1,
@@ -80,7 +80,7 @@ with open(r'Data\Estimar_UH2020.txt') as read_file:
 
 # Finalmente convertimos las muestras preprocesadas a una matriz (no númerica, nos interesa el id esta vez)
 data_predict = np.array(data_predict)
-### FIN PARTE PRETRATAMIENTO DE DATOS MANUALES ###
+### FIN PARTE PRETRATAMIENTO DE DATOS ###
 
 # Variable que contendrá las muestras separadas por clase
 data_per_class = []
