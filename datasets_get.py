@@ -249,3 +249,15 @@ def get_estimar_data(missing_value = 0, one_hot = True):
     dfa = pd.DataFrame(data=data_predict)
     dfa[0] = dfids
     return dfa
+
+def get_estimar_ids():
+    res = []
+    with open(r'Data/Estimar_UH2020.txt') as read_file:
+        read_file.readline()
+        for sample in read_file.readlines():
+            print(sample)
+            sample = sample.split('|')
+            print(sample)
+            res.append(sample[0])
+
+    return res

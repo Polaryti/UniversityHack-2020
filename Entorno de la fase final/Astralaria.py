@@ -53,7 +53,6 @@ X_modelar, X_estimar, est_IDS = coordinates_fe(X_modelar, Y_modelar, X_estimar)
 Y_modelar = Y_modelar.values
 
 Y_modelar = Y_modelar[1:, :]
-X_estimar = X_estimar[1:, :]
 X_modelar = X_modelar[1:, :]
 
 
@@ -78,7 +77,7 @@ data_proc = []
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 2
+iterations = 100
 
 # Si True, muestra información de cada modelo local tras entrenarlo
 debug_mode = True
@@ -87,7 +86,7 @@ debug_mode = True
 test_avg = 0.20
 
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de mejores modelos a utilizar
-best_model_avg = 0.5
+best_model_avg = 0.4
 
 # Variables que miden las métricas globlales del ENTRENAMIENTO
 accuracy_avg = 0
@@ -139,6 +138,8 @@ for ite in range(iterations):
         y_train, y_test = Y[train_index], Y[test_index]
 
 
+    pos = len(X_estimar[0]) - 1
+    
     # Mostramos el porcentaje de entrenamiento
     print('Entrenamiento completo al {}%'.format(ite/iterations * 100))
     
@@ -175,7 +176,7 @@ for ite in range(iterations):
         "precision": precision_score(y_test, y_pred, average = 'macro'),
         "recall": recall_score(y_test, y_pred, average = 'macro'),
         "f1": f1_score(y_test, y_pred, average = 'macro'),
-        "predictions": model.predict(X_estimar[:, 1:].astype('float32')),
+        "predictions": model.predict(X_estimar[:, :pos].astype('float32')),
         "data": {
             'X_train': X_train, 
             'X_test': X_test, 
@@ -219,7 +220,7 @@ for ite in range(iterations):
         "precision": precision_score(y_test, y_pred, average = 'macro'),
         "recall": recall_score(y_test, y_pred, average = 'macro'),
         "f1": f1_score(y_test, y_pred, average = 'macro'),
-        "predictions": model.predict(X_estimar[:, 1:].astype('float32')),
+        "predictions": model.predict(X_estimar[:, :pos].astype('float32')),
         "data": {
             'X_train': X_train, 
             'X_test': X_test, 
@@ -257,7 +258,8 @@ for i in range(n):
     f1_avg += concensus[i]['f1']
 
     # Predicciones
-    predictions_aux = model.predict(X_estimar[:, 1:].astype('float32'))
+    pos = len(X_estimar[0]) - 1
+    predictions_aux = model.predict(X_estimar[:, :pos].astype('float32'))
     ids = get_estimar_ids()
     for i in range(len(ids)):
         if (ids[i] not in predictions):
@@ -281,7 +283,7 @@ def most_frequent(lst):
     return max(set(lst), key = lst.count) 
 
 
-with open(r'Resultados/UPV_Astralaria.txt', 'w') as write_file:
+with open(r'UPV_Astralaria.txt', 'w') as write_file:
     write_file.write('ID|CLASE\n')
     for sample in get_estimar_ids():
-        write_file.write('{}|{}\n'.format(sample[0], categorical_decoder_class[most_frequent(predictions[sample[0]])]))
+        write_file.write('{}|{}\n'.format(sample, categorical_decoder_class[most_frequent(predictions[sample])]))

@@ -186,12 +186,14 @@ def get_modelar_data_ids(missing_value = 0, one_hot = True):
 Método que devuelve los IDs del conjunto estimar.
 """
 def get_estimar_ids():
-    data_list = []
+    res = []
     with open(r'Data/Estimar_UH2020.txt') as read_file:
-        for sample in read_file:
-            data_list.append(sample[0])
-    
-    return data_list
+        read_file.readline()
+        for sample in read_file.readlines():
+            sample = sample.split('|')
+            res.append(sample[0])
+
+    return res
 
 
 """

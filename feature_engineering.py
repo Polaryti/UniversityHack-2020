@@ -85,7 +85,7 @@ def coordinates_fe(X_modelar, y_modelar, X_estimar, K=4):
     #return X_modelar.values, X_estimar.values, est_IDs
     return X_modelar, X_estimar, est_IDs
 
-coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
+#coordinates_fe(getX(get_modelar_data_ids()), getY(get_modelar_data()), get_estimar_data())
 
 def density_RGB_scale(df):
     colorRed = []
