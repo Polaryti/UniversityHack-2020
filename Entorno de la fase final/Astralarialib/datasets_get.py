@@ -182,6 +182,17 @@ def get_modelar_data_ids(missing_value = 0, one_hot = True):
     dfa[0] = dfids
     return dfa
 
+"""
+Método que devuelve los IDs del conjunto estimar.
+"""
+def get_estimar_ids():
+    data_list = []
+    with open(r'../Data/Estimar_UH2020.txt') as read_file:
+        for sample in read_file:
+            data_list.append(sample[0])
+    
+    return data_list
+
 
 """
 Método que devuelve el dataset sin la variable clase.

@@ -86,7 +86,7 @@ data_predict = np.array(data_predict)
 predictions = {}
 
 # Número de iteraciones total por módelo
-iterations = 20
+iterations = 50
 
 # Variable anterior, inicializada de nuevo
 predictions = {}
@@ -95,12 +95,36 @@ predictions = {}
 debug_mode = True
 
 # Variable en el rango (0.0 - 1.0) que indica el procentaje de muestras de validación
-test_avg = 0.2
+test_avg = 0.14
+
+# Variable en el rango (0.0 - 1.0) que indica el procentaje de mejores modelos a utilizar
+best_model_avg = 0.4
 
 accuracy_avg = 0
 precision_avg = 0
 recall_avg = 0
 f1_avg = 0
+
+# Lista que contendra diccionarios con las metricas de cada modelo, predicciones y conjunto de datos utilizados
+concensus = []
+
+# Los diccionarios anteriores seguiran el siguiente formato:
+'''
+model_info = {
+    "accuracy":
+    "precision":
+    "recall":
+    "f1":
+    "predictions":
+    "data": {
+            'X_train': X_train, 
+            'X_test': X_test, 
+            'y_train': y_train, 
+            'y_test': y_test,
+        },
+    "model": <- Solo si 'persistent_mode' es True
+}
+'''
 
 for ite in range(iterations):
     data_proc = []
@@ -128,24 +152,36 @@ for ite in range(iterations):
         reg_lambda=None, scale_pos_weight=None, base_score=None, random_state=None)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
+
+    # Métricas del modelo entrenado
     if debug_mode:
-        #print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
         print('XGBoost ({})'.format(ite))
         print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
         print('Precision (macro): {}'.format(precision_score(y_test, y_pred, average = 'macro')))
         print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
-        print('F1 (macro): {}'.format(f1_score(y_test, y_pred, average = 'macro')))
-        accuracy_avg += accuracy_score(y_test, y_pred)
-        precision_avg += precision_score(y_test, y_pred, average = 'macro')
-        recall_avg += recall_score(y_test, y_pred, average = 'macro')
-        f1_avg += f1_score(y_test, y_pred, average = 'macro')
+        print('F1 (macro): {}\n'.format(f1_score(y_test, y_pred, average = 'macro')))
     
-    predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
-    for i in range(len(data_predict)):
-        if (data_predict[i, 0] not in predictions):
-            predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
-        else:
-            predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
+    # Actualización de las métricas de ENTRENAMIENTO
+    accuracy_avg += accuracy_score(y_test, y_pred)
+    precision_avg += precision_score(y_test, y_pred, average = 'macro')
+    recall_avg += recall_score(y_test, y_pred, average = 'macro')
+    f1_avg += f1_score(y_test, y_pred, average = 'macro')
+
+    # Diccionario con la información del modelo
+    model_info = {
+        "accuracy": accuracy_score(y_test, y_pred),
+        "precision": precision_score(y_test, y_pred, average = 'macro'),
+        "recall": recall_score(y_test, y_pred, average = 'macro'),
+        "f1": f1_score(y_test, y_pred, average = 'macro'),
+        "predictions": model.predict(data_predict[:, 1:].astype('float32')),
+        "data": {
+            'X_train': X_train, 
+            'X_test': X_test, 
+            'y_train': y_train, 
+            'y_test': y_test,
+        },
+    }
+    concensus.append(model_info)
         
     # Modelo RandomForest
     model = RandomForestClassifier(n_estimators=400, criterion='entropy', max_depth=60, min_samples_split=5, 
@@ -154,30 +190,77 @@ for ite in range(iterations):
         random_state=None, verbose=0, warm_start=False, class_weight=None, ccp_alpha=0.0, max_samples=None)
     model.fit(X_train, y_train)
     y_pred = model.predict(X_test)
+    
+    # Métricas del modelo entrenado
     if debug_mode:
-        # print('Matriz de confusión:\n{}\n'.format(confusion_matrix(y_test, y_pred)))
         print('RF ({})'.format(ite))
         print('Accuracy: {}'.format(accuracy_score(y_test, y_pred)))
         print('Precision (macro): {}'.format(precision_score(y_test, y_pred, average = 'macro')))
         print('Recall (macro): {}'.format(recall_score(y_test, y_pred, average = 'macro')))
         print('F1 (macro): {}\n'.format(f1_score(y_test, y_pred, average = 'macro')))
-        accuracy_avg += accuracy_score(y_test, y_pred)
-        precision_avg += precision_score(y_test, y_pred, average = 'macro')
-        recall_avg += recall_score(y_test, y_pred, average = 'macro')
-        f1_avg += f1_score(y_test, y_pred, average = 'macro')
     
-    predictions_aux = model.predict(data_predict[:, 1:].astype('float32'))
+    # Actualización de las métricas de ENTRENAMIENTO
+    accuracy_avg += accuracy_score(y_test, y_pred)
+    precision_avg += precision_score(y_test, y_pred, average = 'macro')
+    recall_avg += recall_score(y_test, y_pred, average = 'macro')
+    f1_avg += f1_score(y_test, y_pred, average = 'macro')
+
+    # Diccionario con la información del modelo
+    model_info = {
+        "accuracy": accuracy_score(y_test, y_pred),
+        "precision": precision_score(y_test, y_pred, average = 'macro'),
+        "recall": recall_score(y_test, y_pred, average = 'macro'),
+        "f1": f1_score(y_test, y_pred, average = 'macro'),
+        "predictions": model.predict(data_predict[:, 1:].astype('float32')),
+        "data": {
+            'X_train': X_train, 
+            'X_test': X_test, 
+            'y_train': y_train, 
+            'y_test': y_test,
+        },
+    }
+    concensus.append(model_info)
+            
+print('\nEntrenamiento completo\n')
+print('MÉTRICAS DEL ENTRENAMIENTO (global)')
+print('Accuracy: {}'.format(accuracy_avg / (iterations * 2)))
+print('Precision (macro): {}'.format(precision_avg / (iterations * 2)))
+print('Recall (macro): {}'.format(recall_avg / (iterations * 2)))
+print('F1(macro): {}'.format(f1_avg / (iterations * 2)))
+
+# 1. Ordenamos 'concensous' según una métrica
+concensus = sorted(concensus, key = lambda i: i['f1'], reverse = True)
+
+# 2. Obtenemos los 'x' mejores modelos
+n = int(iterations * 2 * best_model_avg)
+
+# 3. Calculamos la métrica general para los 'x' modelos y predecimos
+accuracy_avg = 0
+precision_avg = 0
+recall_avg = 0
+f1_avg = 0
+
+for i in range(n):
+    # Métricas
+    accuracy_avg += concensus[i]['accuracy']
+    precision_avg += concensus[i]['precision']
+    recall_avg += concensus[i]['recall']
+    f1_avg += concensus[i]['f1']
+
+    # Predicciones
+    predictions_aux = concensus[i]['predictions']
     for i in range(len(data_predict)):
         if (data_predict[i, 0] not in predictions):
             predictions[data_predict[i, 0]] = [int(predictions_aux[i])]
         else:
             predictions[data_predict[i, 0]].append(int(predictions_aux[i]))
-            
-print('\nEntrenamiento completo\n')
-print('Accuracy: {}'.format(accuracy_avg / (iterations * 2)))
-print('Precision: {}'.format(precision_avg / (iterations * 2)))
-print('Recall: {}'.format(recall_avg / (iterations * 2)))
-print('F1: {}'.format(f1_avg / (iterations * 2)))
+
+print('\nMÉTRICAS DEL MODELO (concenso)')
+print('Accuracy: {}'.format(accuracy_avg / n))
+print('Precision (macro): {}'.format(precision_avg / n))
+print('Recall (macro): {}'.format(recall_avg / n))
+print('F1 (macro): {}'.format(f1_avg / n))
+
 
 # Diccionario para decodificar el nombre de las clases
 categorical_decoder_class = {0: 'RESIDENTIAL',

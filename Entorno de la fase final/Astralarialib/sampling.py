@@ -4,8 +4,11 @@ from imblearn.combine import SMOTETomek, SMOTEENN
 from sklearn.datasets import make_classification
 
 """
-Este archivo 
+Este archivo contiene, entre otras, las técnicas de
+over y undersampling comentadas en el apartado 5.3 de Astralaria.pdf
 """
+
+
 #OVERSAMPLING Y UNDERSAMPLING COMBINADOS
 def smote_tomek(X, y):
     smt = SMOTETomek(random_state=42)
