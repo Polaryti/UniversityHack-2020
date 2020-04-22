@@ -1,18 +1,18 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
-import xgboost as xgb
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, recall_score
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 import seaborn as sns
 import random
 from mpl_toolkits.mplot3d import Axes3D
-from datasets_get import get_modelar_data, get_estimar_data, get_categories_list, getX, getY, get_mod_data_original, get_categorical_decoder_class
+from datasets_get import get_modelar_data, get_categories_list, get_categorical_decoder_class, get_mod_data_original
+
+
+"""
+Método que realiza el histograma mostrado en la Figura 1
+de la sección 3.2 de Astralaria.pdf.
+"""
 
 def hist_decomposition():
     categories_list = get_categories_list()
@@ -24,10 +24,9 @@ def hist_decomposition():
     plt.show()
 
 
-def hist_over_and_undersampling(y_res):
-    y_res.value_counts().plot(kind='bar', title='Número de muestras por clase')
-
-
+"""
+Método general para realizar un PCA
+"""
 def pca_general(X, y, d2=True, d3=True):
     if d2 == True:
         pca_2d(X, y)
@@ -35,6 +34,10 @@ def pca_general(X, y, d2=True, d3=True):
         pca_3d(X, y)
 
 
+"""
+Método que realiza el PCA 2D mostrado en la Figura 2
+de la sección 3.4.1 de Astralaria.pdf.
+"""
 def pca_2d(X, y, n_components=2):
     pca = PCA(n_components=n_components)
     pca_transform = pca.fit_transform(X)
@@ -55,6 +58,10 @@ def pca_2d(X, y, n_components=2):
     plt.show()
 
 
+"""
+Método que realiza el PCA 3D mostrado en la Figura 3
+de la sección 3.4.1 de Astralaria.pdf.
+"""
 def pca_3d(X, y, n_components=3):
     pca = PCA(n_components=n_components)
     pca_transform = pca.fit_transform(X)
@@ -78,6 +85,13 @@ def pca_3d(X, y, n_components=3):
     plt.show()
 
 
+"""
+Método que realiza el t-SNE mostrado en la Figura 4
+de la sección 3.4.2 de Astralaria.pdf.
+También realiza la Figura 5 de esta misma sección,
+añadiendo la línea comentada y con el argumento palette
+a un color menos.
+"""
 def tsne(X, y, perplexity, comp):
     for perp in perplexity:
         tsne = TSNE(n_components=comp, verbose=0, perplexity=perp, n_iter=250)
@@ -86,6 +100,7 @@ def tsne(X, y, perplexity, comp):
         X['tsne-2d-first'] = tsne_results[:,0]
         X['tsne-2d-second'] = tsne_results[:,1]
         X['CLASS'] = y
+        #X = X[X['CLASS'] != 0]
         decoder = get_categorical_decoder_class()
         X = X.replace({'CLASS' : decoder})
         print('Perplexity = ',perp)
@@ -101,6 +116,10 @@ def tsne(X, y, perplexity, comp):
         plt.show()
 
 
+"""
+Método que ilustra el solapamiento entre clases,
+mediante violin plots de cada variable.
+"""
 def violin_plot():
     df = get_mod_data_original()
     decoder = get_categorical_decoder_class()
@@ -111,16 +130,3 @@ def violin_plot():
         ax = plt.figure(figsize=(14,7))
         ax = sns.violinplot(x='CLASS', y=df[col], data=df)
         plt.show
-
-
-def violin_plot_kdtree(df, y):
-    df['CLASS'] = y
-    decoder = get_categorical_decoder_class()
-    df = df.replace({'CLASS' : decoder})
-    df_columns = list(df.columns.values)
-    for col in df_columns:
-        ax = plt.figure(figsize=(14,7))
-        ax = sns.violinplot(x='CLASS', y=df[col], data=df)
-        plt.show()
-
-tsne(getX(get_mod_data_original()), getY(get_mod_data_original()), [50], 2)

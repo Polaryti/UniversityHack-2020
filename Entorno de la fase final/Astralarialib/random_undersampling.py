@@ -1,10 +1,7 @@
  # coding=utf-8
 import pandas as pd
-import numpy as np
-import math
-from sklearn.model_selection import train_test_split
-from .datasets_get import get_modelar_data_ids
 
+"""
 def dividir_dataset(df, train_percentage=0.8, test_percentage=0.2, randomized=False, residential_perc=3000, industrial_perc=1400, public_perc=900, retail_perc=700, office_perc=400, other_perc=600, agriculture_perc=100):
     np.random.seed(7)
     if train_percentage + test_percentage != 1:
@@ -34,13 +31,15 @@ def dividir_dataset(df, train_percentage=0.8, test_percentage=0.2, randomized=Fa
         print(df_train)
         print(df_list[0])
         return df_train.sample(frac=1), df_list[0].sample(frac=1)
+"""
 
-
+"""
+Método que ejecuta el Random Undersampling de RESIDENTIAL.
+Mencionado en el apartado 5.3 de Astralaria.pdf.
+"""
 def random_undersample_residential(df, residential_samples=6000):
     n_drop = df.loc[df['CLASS'] == 0].shape[0] - 6000
     df_res_drop = df.loc[df['CLASS'] == 0].sample(n=n_drop)
     df = pd.concat([df, df_res_drop]).drop_duplicates(keep=False).sample(frac=1)
-    print(df)
     df.index = range(df.shape[0])
-    print(df)
     return df

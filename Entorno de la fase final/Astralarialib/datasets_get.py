@@ -72,7 +72,12 @@ def get_categories_list():
 
 def get_categorical_encoder_catastral_onehot():
     return categorical_encoder_catastral_onehot
-    
+
+
+"""
+Método que devuelve el dataset modelar preprocesado,
+como se menciona en el apartado 4.1 de Astralaria.pdf.
+""" 
 def get_modelar_data(missing_value = 0, one_hot = True):
     # Variable que contendrá las muestras
     data_list = []
@@ -107,6 +112,9 @@ def get_modelar_data(missing_value = 0, one_hot = True):
     return df
 
 
+"""
+Método que devuelve el dataset modelar sin preprocesar.
+"""
 def get_mod_data_original():
     # Variable que contendrá las muestras
     data = []
@@ -133,6 +141,11 @@ def get_mod_data_original():
     df = pd.DataFrame(data=data).rename(columns={54:'CLASS'})
     return df
 
+
+"""
+Método que devuelve el dataset modelar con los IDs,
+y preprocesado como se menciona en el apartado 4.1 de Astralaria.pdf.
+"""
 def get_modelar_data_ids(missing_value = 0, one_hot = True):
     # Variable que contendrá las muestras
     data_list = []
@@ -170,54 +183,25 @@ def get_modelar_data_ids(missing_value = 0, one_hot = True):
     return dfa
 
 
+"""
+Método que devuelve el dataset sin la variable clase.
+"""
 def getX(modelar_df):
     return modelar_df.loc[:, modelar_df.columns!=CLASS]
 
 
+"""
+Método que devuelve el dataset que solo contiene la
+variable clase.
+"""
 def getY(modelar_df):
     return modelar_df.loc[:, modelar_df.columns == CLASS]
 
 
-def reduce_dimension_modelar(modelar_df, num=30):
-    if num > 55:
-        print('num no mayor a 55')
-    else:
-        importance_df = pd.read_csv('Importancia de parametros.csv')
-        indexes_list = list(importance_df['Index'])
-        indexes_list[::-1]
-        indexes_quited = []
-        i = 0
-        j = 0
-        while j < num:
-            if not 53 <= indexes_list[i] <= 65 and indexes_list[i] != 1:
-                indexes_quited.append(indexes_list[i])
-                del modelar_df[indexes_list[i]]
-                j += 1
-            i+=1
-        return modelar_df
-
-
-def reduce_colors(df):
-    #Quita los deciles 2,3,4,6,7 y 8 de cada color
-    indices_start = [4, 5, 6, 8, 9, 10]
-    for i in range(len(indices_start)):
-        df.drop([indices_start[i], indices_start[i]+11, indices_start[i]+22, indices_start[i]+33],inplace=True,axis=1)
-    return df
-
-
-def reduce_geometry_average(df):
-    avgs = []
-    for i in range(df.shape[0]):
-        avgs.append((df.loc[i, 48] + df.loc[i, 49] + df.loc[i, 50] + df.loc[i, 51]) / 4)
-    del df[48]
-    del df[49]
-    del df[50]
-    del df[51]
-    df['GEOM_AVG'] = avgs
-    
-    return df
-
-
+"""
+Método que devuelve el dataset estimar preprocesado como se
+menciona en el apartado 4.1 de Astralaria.pdf.
+"""
 def get_estimar_data(missing_value = 0, one_hot = True):
     # Variable que contendrá las muestras a predecir
     data_predict = []
